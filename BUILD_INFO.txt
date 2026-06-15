@@ -1,0 +1,5 @@
+CH89 v11 auth-visible-stable
+- fixes blank page after successful authorization
+- forces main page visible when Supabase session/local auth token exists
+- keeps gate hidden after auth even if old auth-lock class sticks
+- removes remaining data:image icon from index head

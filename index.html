@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+
+<html data-site-theme="mod" data-theme="dark" lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="no-referrer" name="referrer"/>
+<title>Сайт Модерации Cherepovets 89</title>
+<!-- v113: restore v106 org switching + reports + user kind selection -->
+<meta content="Сайт Модерации Cherepovets 89" property="og:title"/>
+<meta content="Официальный сайт модерации сервера Cherepovets 89" property="og:description"/>
+<link href="./assets/img/favicon.png" rel="icon" type="image/png"/>
+
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- === CH89 LEGACY RESTORE V7: early stability guard === -->
+<!-- === /CH89 LEGACY RESTORE V7 EARLY === -->
+<link href="./assets/css/app.css" rel="stylesheet"/>
+<style id="ch89-critical-no-blank">
+  html,body{min-height:100%;background:#050712;color:#f8fbff;}
+  body.ch89-auth-lock #ch89EntryAuthGate{display:flex;visibility:visible;opacity:1;}
+  #ch89EntryAuthGate{position:fixed;inset:0;z-index:2147483000;align-items:center;justify-content:center;}
+  #ch89EntryAuthGate[hidden]{display:none!important;}
+  .ch89-auth-shell{width:min(1160px,100%);}
+</style><script defer="" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- === CH89 ENTRY AUTH GATE === -->
+<!-- === /CH89 ENTRY AUTH GATE === -->
+<!-- === CH89 V173: stable entry, smoother animations, single report-review button === -->
+<!-- === /CH89 V173 === -->
+<!-- CH89 v9 stable assets: monolithic inline CSS/JS moved to external files --></head>
+<body class="ch89-auth-lock ch89-session-checking">
+<div aria-labelledby="ch89AuthTitle" aria-modal="true" id="ch89EntryAuthGate" role="dialog">
+<div class="ch89-auth-shell">
+<section aria-label="Cherepovets 89" class="ch89-auth-hero">
+<div>
+<div class="ch89-auth-kicker"><span class="ch89-auth-dot"></span> Cherepovets 89 · закрытый вход</div>
+<h1 class="ch89-auth-title">Cherepovets <span>Панель модерации · 89</span></h1>
+<p class="ch89-auth-lead">Закрытая панель главной модерации сервера Череповец 89. Авторизуйтесь, чтобы открыть модерацию, общие отчёты и инструкцию.</p>
+</div>
+<div aria-hidden="true" class="ch89-auth-mini-grid">
+<div class="ch89-auth-mini"><b>Модерация</b><small>Тренажёр, проверки и рабочие сценарии.</small></div>
+<div class="ch89-auth-mini"><b>Общее</b><small>Отчёты, таблица и профиль сотрудника.</small></div>
+<div class="ch89-auth-mini"><b>/help</b><small>Прямая ссылка на инструкцию после входа.</small></div>
+</div>
+</section>
+<section class="ch89-auth-card">
+<div>
+<h2 id="ch89AuthTitle">Вход на сайт</h2>
+<p id="ch89AuthSubtitle">Авторизация нужна сразу при открытии сайта.</p>
+</div>
+<div aria-label="Выбор действия" class="ch89-auth-tabs" role="tablist">
+<button class="ch89-auth-tab active" data-ch89-auth-tab="login" id="ch89AuthLoginTab" type="button">Войти</button>
+<button class="ch89-auth-tab" data-ch89-auth-tab="register" id="ch89AuthRegisterTab" type="button">Регистрация</button>
+</div>
+<div class="ch89-auth-form">
+<div class="ch89-auth-field">
+<label for="ch89AuthEmail">Email</label>
+<input autocapitalize="none" autocomplete="email" autocorrect="off" class="ch89-auth-input" id="ch89AuthEmail" inputmode="email" placeholder="name@example.com" spellcheck="false" type="email"/>
+</div>
+<div class="ch89-auth-field" id="ch89AuthNickWrap" style="display:none;">
+<label for="ch89AuthNick">Игровой никнейм</label>
+<input autocapitalize="none" autocomplete="nickname" autocorrect="off" class="ch89-auth-input" id="ch89AuthNick" placeholder="Nick_Name" spellcheck="false" type="text"/>
+</div>
+<div class="ch89-auth-field" id="ch89AuthRoleWrap" style="display:none;">
+<label for="ch89AuthRole">Роль на сайте</label>
+<select autocomplete="off" class="ch89-auth-input" id="ch89AuthRole">
+<option value="moderator">Модератор</option>
+<option value="player">Обычный игрок</option>
+<option value="ss">СС</option>
+</select>
+</div>
+<div class="ch89-auth-field">
+<label for="ch89AuthPassword">Пароль</label>
+<input autocomplete="current-password" class="ch89-auth-input" id="ch89AuthPassword" placeholder="Минимум 6 символов" type="password"/>
+</div>
+<div class="ch89-auth-msg" id="ch89AuthMessage"></div>
+<div class="ch89-auth-row">
+<button class="ch89-auth-primary" id="ch89AuthSubmit" type="button">Войти</button>
+<button class="ch89-auth-secondary" id="ch89AuthSwitch" type="button">Создать аккаунт</button>
+</div>
+<p class="ch89-auth-footnote">Гостевой вход отключён, чтобы не терялись отчёты, XP и настройки профиля.</p>
+</div>
+<div class="ch89-auth-loader" id="ch89AuthLoader">
+<div aria-live="polite" class="ch89-auto-login-demo">
+<div class="ch89-auto-login-title"><span class="ch89-auth-dot"></span><span>Проверяю активную сессию...</span></div>
+<div class="ch89-auto-login-grid">
+<div><span>Email</span><b id="ch89AutoLoginEmail"></b></div>
+<div><span>Пароль</span><b id="ch89AutoLoginPass"></b></div>
+<div><span>Статус</span><b id="ch89AutoLoginState">ожидание ответа</b></div>
+</div>
+<div class="ch89-auto-login-bar"><i></i></div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<div id="trollBobophone" style="display: none; position: fixed; inset: 0; background: #050000; z-index: 9999999; flex-direction: column; align-items: center; justify-content: center; color: #ff0000; font-family: 'Courier New', Courier, monospace; text-align: center; padding: 2rem;">
+<h1 style="font-size: clamp(2rem, 5vw, 5rem); margin-bottom: 1rem; animation: pulse 0.5s infinite; text-shadow: 0 0 20px red;">В ВАШЕМ БОБОФОНЕ ЖУКИ!</h1>
+<p style="font-size: clamp(1rem, 3vw, 2.5rem); font-weight: bold;">СРОЧНО УДАЛИТЕ БОБОФОН!</p>
+<div style="font-size: clamp(5rem, 15vw, 12rem); margin-top: 2rem; animation: bounce 1s infinite;">🐛🕷️🪲</div>
+</div>
+<div id="imageModal" onclick="this.style.display='none'" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 100000; align-items: center; justify-content: center; cursor: zoom-out;">
+<img id="imageModalSrc" src="" style="max-width: 95%; max-height: 95%; border-radius: 16px; box-shadow: 0 0 50px rgba(0,0,0,0.9);"/>
+</div>
+<div id="authModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem 2rem; width: 100%; max-width: 420px; display: grid; gap: 1.5rem;">
+<h2 style="margin: 0; font-family: var(--font-display); text-align: center; font-size: 1.8rem; color: var(--color-primary);">Авторизация</h2>
+<p style="color: var(--color-text-muted); font-size: var(--text-sm); margin: 0; text-align: center;">Войдите или зарегистрируйтесь, чтобы сохранять прогресс.</p>
+<div style="display: flex; flex-direction: column; gap: 1rem;">
+<input autocapitalize="none" autocomplete="email" autocorrect="off" class="support-input" id="authEmail" inputmode="email" name="email" placeholder="Ваш Email" spellcheck="false" type="email"/>
+<input autocapitalize="none" autocomplete="off" autocorrect="off" class="support-input" id="authNickname" name="game_nickname" placeholder="Игровой Nickname (Для ТОПа)" spellcheck="false" type="text"/>
+<select autocomplete="off" class="support-input" id="authUserKind" name="user_kind">
+<option value="">Выберите роль на сайте</option>
+<option value="player">Обычный игрок</option>
+<option value="moderator">Модер</option>
+<option value="ss">СС</option>
+</select>
+<input autocomplete="current-password" class="support-input" id="authPassword" name="password" placeholder="Пароль" type="password"/>
+</div>
+<div id="authErrorMsg" style="color: var(--color-error); font-size: var(--text-sm); display: none; text-align: center; font-weight: 800;"></div>
+<div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem;">
+<button class="btn btn-primary" id="authLoginSubmit" style="width: 100%;">Войти</button>
+<button class="btn btn-secondary" id="authRegisterSubmit" style="width: 100%;">Создать аккаунт</button>
+<button class="btn" id="authCloseModal" style="background: transparent; border: 1px solid rgba(191,198,255,0.2); color: var(--color-text-muted); width: 100%;">Отмена</button>
+</div>
+</div>
+</div>
+<div id="nicknameModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(12px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem; width: 100%; max-width: 420px; display: grid; gap: 1.5rem;">
+<h2 style="margin: 0; font-family: var(--font-display); color: #ffbf47; text-align: center; font-size: 1.8rem;">Внимание!</h2>
+<p style="color: var(--color-text-muted); font-size: var(--text-sm); margin: 0; text-align: center; line-height: 1.6;">Для участия в Лидерборде необходимо установить свой игровой Nickname.</p>
+<input class="support-input" id="forceNicknameInput" placeholder="Например: John_Wick" type="text"/>
+<button class="btn btn-primary" id="forceNicknameBtn" style="width: 100%;">Сохранить Никнейм</button>
+</div>
+</div>
+<div id="spamModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(15px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 3rem 2.5rem; width: 100%; max-width: 480px; display: grid; gap: 1.8rem; text-align: center; border: 2px solid rgba(255, 107, 136, 0.8); box-shadow: 0 0 60px rgba(255, 107, 136, 0.5);">
+<div style="font-size: 5rem; margin-bottom: -1.5rem; animation: pulse 2s infinite;">👮‍♂️</div>
+<h2 style="margin: 0; font-family: var(--font-display); color: var(--color-error); font-size: var(--text-xl); text-transform: uppercase;">Слишком быстро!</h2>
+<p style="color: var(--color-text-muted); font-size: var(--text-base); margin: 0; line-height: 1.5;">Тренажёр создан для вдумчивой работы, а не для кликера.<br/><br/><span style="color:#fff;">В качестве штрафа <strong>выдача вердиктов заблокирована на 1 минуту</strong>.</span></p>
+<a class="btn btn-primary" href="https://ds-rules.netlify.app" style="text-decoration: none; background: linear-gradient(135deg, #ff3b60, #ff6b88); box-shadow: 0 10px 35px rgba(255, 107, 136, 0.6); border-color: #ff6b88;" target="_blank">Прочитать правила</a>
+<button class="btn" id="closeSpamModal" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: var(--color-text-muted); width: 100%;">Блокировка...</button>
+</div>
+</div>
+<div id="genericGameModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem; width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 1.5rem; text-align: center; position: relative;">
+<div id="ggStartOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:100; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(8px); border-radius:inherit;">
+<h3 id="ggStartTitle" style="color:#fff; font-size:1.8rem; margin-bottom:0.5rem; font-family: var(--font-display);">Игра</h3>
+<p id="ggStartBetText" style="color:var(--color-warning); font-size:1.1rem; font-weight:bold; margin-bottom:1.5rem;">Ставка: 0 XP</p>
+<button class="btn btn-primary" id="ggStartActionBtn" style="font-size:1.2rem; padding:1rem 3rem;">🚀 Запустить</button>
+</div>
+<h2 id="ggTitle" style="margin: 0; font-family: var(--font-display); color: #ffbf47; font-size: 1.8rem;">Игра</h2>
+<div id="ggInteractiveArea" style="width: 100%; margin-top: 0.5rem; display: flex; flex-direction: column; align-items: center;">
+<div id="ggRps" style="display:none; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%;">
+<div id="rpsScore" style="font-size: 1.5rem; font-weight: 900; color: #fff; background: rgba(0,0,0,0.6); padding: 0.8rem 1.8rem; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15); box-shadow: inset 0 0 15px rgba(0,0,0,0.5);">Игрок: 0 | Бот: 0</div>
+<div style="display:flex; justify-content: center; gap: 1rem; width: 100%; flex-wrap: wrap;">
+<button class="gg-btn rps-btn" data-choice="rock">✊</button>
+<button class="gg-btn rps-btn" data-choice="paper">✋</button>
+<button class="gg-btn rps-btn" data-choice="scissors">✌️</button>
+</div>
+</div>
+<div id="ggSlots" style="display:none; flex-direction: column; align-items: center; width: 100%;">
+<div class="slots-container">
+<div class="slot-item" id="slot1">❓</div>
+<div class="slot-item" id="slot2">❓</div>
+<div class="slot-item" id="slot3">❓</div>
+</div>
+<button class="btn btn-primary" id="ggSpinBtn" style="width: 100%; font-size: 1.2rem;">Дернуть рычаг</button>
+</div>
+<div id="ggTiming" style="display:none; flex-direction: column; align-items: center; width: 100%;">
+<p style="font-size: 1rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Остановите ползунок в зеленой зоне!</p>
+<div class="timing-bar-wrap">
+<div class="timing-zone"></div>
+<div class="timing-cursor" id="timingCursor"></div>
+</div>
+<button class="btn btn-primary" id="ggStopBtn" style="width: 100%; font-size: 1.2rem;">СТОП!</button>
+</div>
+<div id="ggRocket" style="display:none; flex-direction: column; align-items: center; width: 100%;">
+<div class="rocket-graph">
+<div class="rocket-multiplier" id="rocketMultiplier">1.00x</div>
+<div class="rocket-emoji" id="rocketEmoji">🚀</div>
+</div>
+<button class="btn btn-primary" id="ggRocketCashoutBtn" style="width: 100%; background: var(--color-success); border-color: var(--color-success);">Забрать (Cashout)</button>
+</div>
+<div id="ggCases" style="display:none; flex-direction: row; gap: 1rem; width: 100%; justify-content: center; flex-wrap: wrap;">
+<div class="case-box bronze" onclick="openCase('bronze')"><span style="font-size:3rem;">📦</span><b>Бронза</b></div>
+<div class="case-box silver" onclick="openCase('silver')"><span style="font-size:3rem;">💼</span><b>Серебро</b></div>
+<div class="case-box gold" onclick="openCase('gold')"><span style="font-size:3rem;">💎</span><b>Золото</b></div>
+</div>
+<div id="ggDice" style="display:none; flex-direction:column; align-items:center; width:100%;">
+<p style="color:var(--color-text-muted); margin-bottom:1rem;">Твой бросок должен быть больше броска Дилера!</p>
+<div class="dice-container">
+<div style="text-align:center;"><div class="dice-box" id="dicePlayer">?</div><div style="margin-top:0.5rem; font-weight:bold;">Ты</div></div>
+<div style="font-size: 2rem; color: var(--color-text-faint);">VS</div>
+<div style="text-align:center;"><div class="dice-box" id="diceDealer" style="background:#ffbf47;">?</div><div style="margin-top:0.5rem; font-weight:bold; color:var(--color-warning);">Дилер</div></div>
+</div>
+<button class="btn btn-primary" id="ggDiceBtn" style="width: 100%; font-size: 1.2rem;">Бросить кости</button>
+</div>
+<div id="ggMines" style="display:none; flex-direction:column; align-items:center; width:100%;">
+<p style="color:var(--color-text-muted); margin-bottom:1rem;">Найди 3 алмаза (2 мины на поле)!</p>
+<div class="mines-grid" id="minesGrid"></div>
+<div id="minesProgress" style="font-weight:bold; color:var(--color-success); font-size:1.2rem;">Найдено: 0 / 3</div>
+</div>
+<div id="ggHiLo" style="display:none; flex-direction:column; align-items:center; width:100%;">
+<p style="color:var(--color-text-muted); margin-bottom:1rem;">Угадай, будет ли следующее число (1-100) БОЛЬШЕ или МЕНЬШЕ.</p>
+<div class="dice-box" id="hiloCurrent" style="width:120px; height:120px; font-size:4rem; margin-bottom:1.5rem; border-radius:30px; background:linear-gradient(135deg, #a26cff, #c4a1ff); color:#fff; box-shadow:0 10px 30px rgba(162,108,255,0.4);">50</div>
+<div style="display:flex; gap:1rem; width:100%;">
+<button class="btn btn-primary" id="btnHiLoHigh" style="flex:1; font-size:1.2rem; background:var(--color-success); border-color:var(--color-success);">⬆️ Больше</button>
+<button class="btn btn-primary" id="btnHiLoLow" style="flex:1; font-size:1.2rem; background:var(--color-error); border-color:var(--color-error);">⬇️ Меньше</button>
+</div>
+</div>
+<div id="ggWheelX" style="display:none; flex-direction:column; align-items:center; width:100%;">
+<p style="color:var(--color-text-muted); margin-bottom:1.5rem;">Вращай колесо иксов!</p>
+<div style="position:relative; margin-bottom:2rem; width:200px; height:200px;">
+<div class="wheelx-pointer">▼</div>
+<div class="wheelx-wrapper" id="wheelXSpinner"></div>
+</div>
+<button class="btn btn-primary" id="ggWheelXBtn" style="width: 100%; font-size: 1.2rem;">Крутить колесо</button>
+</div>
+<div id="ggShells" style="display:none; flex-direction:column; align-items:center; width:100%;">
+<p style="color:var(--color-text-muted); margin-bottom:1.5rem;">Угадай, где спрятан мячик! (х2.5)</p>
+<div style="display:flex; gap:1.5rem; margin-bottom:1rem;">
+<div class="shell-cup" data-idx="0">🍵<div class="shell-ball">🎾</div></div>
+<div class="shell-cup" data-idx="1">🍵<div class="shell-ball">🎾</div></div>
+<div class="shell-cup" data-idx="2">🍵<div class="shell-ball">🎾</div></div>
+</div>
+<button class="btn btn-secondary" id="ggShellsBtn" style="width: 100%; font-size: 1.2rem; display:none;">Играть снова</button>
+</div>
+</div>
+<div id="ggResult" style="font-size: 1.4rem; font-weight: 800; min-height: 3rem; margin-top: 1rem; display: flex; align-items: center; justify-content: center; padding: 0.8rem; background: rgba(0,0,0,0.4); border-radius: 14px; border: 1px solid rgba(255,255,255,0.05);"></div>
+<button class="btn btn-secondary" id="closeGgBtn" style="display: none; width: 100%;">Забрать результат</button>
+</div>
+</div>
+<div id="fortuneModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem; width: 100%; max-width: 650px; display: flex; flex-direction: column; gap: 1.5rem; text-align: center; position: relative;">
+<div id="fortuneStartOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); z-index:100; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(8px); border-radius:inherit;">
+<button class="btn btn-primary" id="startFortuneBtn" style="font-size:1.4rem; padding:1rem 3rem;">Крутить рулетку!</button>
+</div>
+<h2 id="fortuneTitle" style="margin: 0; font-family: var(--font-display); font-size: var(--text-xl); color: #ffbf47;">Колесо Фортуны</h2>
+<p id="fortuneDesc" style="color: var(--color-text-muted); font-size: var(--text-base); margin: 0;">Испытай удачу! Призы будут добавлены на баланс или отправлены Руководству.</p>
+<div class="roulette-wrapper">
+<div class="roulette-pointer"></div>
+<div class="roulette-track" id="rouletteTrack"></div>
+</div>
+<div id="fortuneResultText" style="min-height: 3rem; font-size: 1.6rem; font-weight: 900; color: var(--color-success); margin-top: 1rem; text-shadow: 0 0 25px rgba(82,199,123,0.6);"></div>
+<button class="btn btn-secondary" id="closeFortuneBtn" style="margin-top: 1rem; display: none; width: 100%;" type="button">Закрыть и забрать</button>
+</div>
+</div>
+<div id="coinModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem; width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 1.5rem; text-align: center;">
+<h2 style="margin: 0; font-family: var(--font-display); color: #ffbf47; font-size: 1.8rem;">Орёл или Решка</h2>
+<p style="color: var(--color-text-muted); font-size: var(--text-sm); margin: 0;">Выбери сторону!</p>
+<div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 0.5rem;">
+<button class="btn btn-primary" id="btnHeads" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Орёл</button>
+<button class="btn btn-secondary" id="btnTails" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Решка</button>
+</div>
+<div id="coinAnimation" style="font-size: 6rem; display: none; text-shadow: 0 0 30px rgba(255, 191, 71, 0.6);">🪙</div>
+<div id="coinResult" style="font-size: 1.4rem; font-weight: 800; min-height: 2.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 12px;"></div>
+<button class="btn" id="closeCoinBtn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(191,198,255,0.2); color: var(--color-text-muted); display: none; width: 100%;">Забрать результат</button>
+</div>
+</div>
+<div id="safesModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem; width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 1.5rem; text-align: center;">
+<h2 style="margin: 0; font-family: var(--font-display); color: #a26cff; font-size: 1.8rem;">Три Сейфа</h2>
+<p style="color: var(--color-text-muted); font-size: var(--text-sm); margin: 0;">В одном из сейфов лежит х3 куш! Угадай, в каком.</p>
+<div id="safesContainer" style="display: flex; gap: 1.2rem; justify-content: center; margin-bottom: 0.5rem;">
+<button class="safe-btn" data-index="0" style="font-size: 4rem; background: rgba(0,0,0,0.5); border: 2px solid #a26cff; border-radius: 18px; padding: 1.8rem; cursor: pointer; transition: 0.3s ease; flex: 1; box-shadow: inset 0 0 20px rgba(162,108,255,0.3);">🧰</button>
+<button class="safe-btn" data-index="1" style="font-size: 4rem; background: rgba(0,0,0,0.5); border: 2px solid #a26cff; border-radius: 18px; padding: 1.8rem; cursor: pointer; transition: 0.3s ease; flex: 1; box-shadow: inset 0 0 20px rgba(162,108,255,0.3);">🧰</button>
+<button class="safe-btn" data-index="2" style="font-size: 4rem; background: rgba(0,0,0,0.5); border: 2px solid #a26cff; border-radius: 18px; padding: 1.8rem; cursor: pointer; transition: 0.3s ease; flex: 1; box-shadow: inset 0 0 20px rgba(162,108,255,0.3);">🧰</button>
+</div>
+<div id="safesResult" style="font-size: 1.4rem; font-weight: 800; min-height: 2.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 12px;"></div>
+<button class="btn" id="closeSafesBtn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(191,198,255,0.2); color: var(--color-text-muted); display: none; width: 100%;">Забрать результат</button>
+</div>
+</div>
+<div id="jwModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+<div class="panel" style="padding: 2.5rem; width: 100%; max-width: 550px; display: flex; flex-direction: column; gap: 1.5rem; text-align: center;">
+<h2 style="margin: 0; font-family: var(--font-display); color: #ff6b88; font-size: 1.8rem; text-transform: uppercase;">Викторина Джона Уика</h2>
+<p style="color: var(--color-text-muted); font-size: var(--text-sm); margin: 0;">5 случайных вопросов. Ответь правильно на 4 из 5 и получи <span style="color:#ff6b88; font-weight:bold;">3000 XP</span>. <br/>Игра доступна только 1 раз!</p>
+<div style="width: 100%; min-height: 150px; padding: 1.5rem; border-radius: 16px; border: 2px solid #ff6b88; box-shadow: 0 0 30px rgba(255,107,136,0.4); background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;">
+<h3 id="jwQuestionText" style="color: #fff; font-size: 1.3rem; margin: 0; line-height: 1.5;">Загрузка вопроса...</h3>
+</div>
+<div id="jwOptions" style="display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 0.5rem;"></div>
+<div id="jwResult" style="font-size: 1.4rem; font-weight: 800; min-height: 2.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 12px; display: none;"></div>
+<button class="btn btn-secondary" id="closeJwBtn" style="display: none; width: 100%;">Закончить игру</button>
+</div>
+</div>
+<main class="page">
+<header class="topbar animate-top">
+<div class="brand">
+<div class="logo">
+<svg fill="none" height="28" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="28">
+<path d="M4 18.5V6.8C4 5.8 4.8 5 5.8 5h4.4"></path>
+<rect height="8" rx="2" width="11" x="9" y="3.5"></rect>
+<path d="M8 12.5 12 7l4 5.5"></path>
+<path d="M4 21h9.5"></path>
+</svg>
+</div>
+<div>
+<div class="brand-title">Cherepovets 89</div>
+<div class="brand-sub" id="brandSubtitle">Патруль чата модераторов</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: flex-end;">
+<div id="authStatus" style="display: flex; align-items: center; gap: 0.8rem; background: rgba(0,0,0,0.5); padding: 0.6rem 1.2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+<span id="userEmailDisplay" style="font-size: var(--text-sm); color: #fff; font-weight: 700;"></span>
+<button class="badge xp" id="loginBtnUI" style="cursor: pointer; padding: 0.5rem 1rem; box-shadow: none;" type="button">Войти</button>
+<button class="badge ban" id="logoutBtnUI" style="cursor: pointer; display: none; padding: 0.5rem 1rem;" type="button">Выйти</button>
+</div>
+<div style="display: flex; gap: 0.6rem;">
+<button aria-label="Музыка" class="icon-btn" id="musicToggleBtn" title="Фоновая музыка" type="button">🔇</button>
+<button aria-label="Звуки" class="icon-btn" id="sfxToggleBtn" title="Звуки кнопок" type="button">🔊</button>
+<button aria-label="Сменить тему" class="icon-btn" data-theme-toggle="" type="button">🌙</button>
+</div>
+</div>
+</header>
+<div class="info-banner animate-top" id="infoBanner" style="animation-delay: 0.1s;">
+<div class="info-banner-icon">🏆</div>
+<div class="info-banner-text" id="infoBannerText">Добро пожаловать в тренажёр! Выполняйте квесты, отвечайте на репорты и зарабатывайте XP.</div>
+</div>
+<section class="hero animate-hero">
+<article class="panel hero-card">
+<div class="badge-row">
+<span class="badge">Discord • Cherepovets 89</span>
+<span class="badge" id="heroBadge2">🛡️ Режим: чат-патруль</span>
+</div>
+<h1 id="heroTitle">Патрулируй <span>чат</span> без ошибок.</h1>
+<p id="heroText">Отличай нарушения от обычного общения, выбирай верный вердикт и держи стабильную смену.</p>
+<div class="hero-actions">
+<button class="btn btn-primary" id="startBtn" type="button">Начать смену</button>
+<button class="btn btn-secondary" id="resetBtn" type="button">Сбросить смену</button>
+</div>
+</article>
+<aside class="panel rules">
+<div class="section-head">
+<h2 id="rightTitle">Материалы модератора</h2>
+<p id="rightLead">Подсказки по модерации.</p>
+</div>
+<div class="rule-list" id="rightCards"></div>
+</aside>
+</section>
+<div class="nav-container animate-nav">
+<div class="main-nav">
+<button class="main-cat-btn active" data-cat="moderation" type="button">🛡️ Модерация</button>
+<button class="main-cat-btn" data-cat="support" type="button">💬 Поддержка</button>
+<button class="main-cat-btn" data-cat="general" type="button">🌐 Общее</button>
+<button class="main-cat-btn" data-cat="organizations" type="button">🏢 Организации</button>
+<button class="main-cat-btn instructia-nav-btn" data-route="instructia" id="openInstructiaBtn" type="button">📖 Инструкция</button>
+</div>
+<div class="sub-nav" id="subNavModeration">
+<button class="mode-btn active" data-mode="moderation" type="button">Тренажёр</button>
+<button class="mode-btn" data-mode="timeattack" type="button">На время ⏱️</button>
+<button class="mode-btn" data-mode="complaints" type="button">Жалобы</button>
+<button class="mode-btn" data-mode="shop" id="shopTabBtn" style="display:none;" type="button">Магазин</button>
+<button class="mode-btn" data-mode="report" id="reportTabBtn" style="display:none;" type="button">Отчётность</button>
+<button class="mode-btn" data-mode="inactives" id="inactiveTabBtn" style="display:none;" type="button">Неактивы</button>
+<button class="mode-btn" data-mode="leadership" id="leadershipTabBtn" style="display:none;" type="button">Руководство</button>
+<button class="mode-btn" data-mode="admin_log" id="adminLogTabBtn" style="display:none;" type="button">Логи (Мод)</button>
+<button class="mode-btn" data-mode="creator" id="creatorTabBtn" style="display:none;" type="button">Панель Создателя</button>
+</div>
+<div class="sub-nav" id="subNavSupport" style="display:none;">
+<button class="mode-btn" data-mode="support" type="button">Тренажёр АП</button>
+<button class="mode-btn" data-mode="ap_shop" id="apShopTabBtn" style="display:none;" type="button">Магазин АП</button>
+<button class="mode-btn" data-mode="ap_admin" id="apAdminTabBtn" style="display:none;" type="button">Руководство АП</button>
+<button class="mode-btn" data-mode="ap_admin_log" id="apAdminLogTabBtn" style="display:none;" type="button">Логи (АП)</button>
+</div>
+<div class="sub-nav" data-rewritten="v147-org-final" id="subNavOrganizations" style="display:none;"></div>
+<div class="sub-nav" id="subNavGeneral" style="display:none;">
+<button class="mode-btn" data-mode="quests" type="button">Квесты</button>
+<button class="mode-btn" data-mode="leaderboard" type="button">Лидерборд</button>
+<button class="mode-btn" data-mode="reports_table" id="reportsTableBtn" style="display:none;" type="button">Таблица отчётов</button>
+<button class="mode-btn" data-mode="guide" type="button">Руководство</button>
+<button class="mode-btn" data-mode="about" type="button">О команде</button>
+<button class="mode-btn" data-mode="profile" type="button">Профиль</button>
+</div>
+</div>
+<section class="game-wrap" id="game">
+<section class="panel game-card fade-in" id="mode-fsb" style="display:none;">
+<div class="section-head">
+<h2 style="color: #6c8cff;">Федеральная Служба Безопасности (ФСБ)</h2>
+<p>Рассмотрение заявлений в Академию ФСБ и проверка по УК РФ.</p>
+</div>
+<div class="stats-grid">
+<div class="stat"><span class="stat-label">Проверено дел</span><div class="stat-value" id="fsbResolvedValue">0</div></div>
+<div class="stat"><span class="stat-label">Одобрено</span><div class="stat-value" id="fsbApprovedValue" style="color: var(--color-success);">0</div></div>
+<div class="stat"><span class="stat-label">Отказано</span><div class="stat-value" id="fsbRejectedValue" style="color: var(--color-error);">0</div></div>
+</div>
+<div class="feed">
+<article class="message-card">
+<div class="channel"><span class="channel-dot" style="background:#6c8cff;"></span># fsb / academy-applications</div>
+<div class="author-row">
+<div class="avatar" style="background: conic-gradient(from 210deg, #6c8cff, #3b82f6, #6c8cff);">A</div>
+<div><div class="author-name" id="fsbAuthor">Кандидат скрыт</div><div class="author-meta" id="fsbMeta">Появится после начала смены</div></div>
+</div>
+<div class="message-text" id="fsbText">Ожидание заявления...</div>
+<div id="fsbEvidence" style="background: rgba(0,0,0,0.6); padding: 1.2rem; border-radius: 12px; font-size: 0.95rem; color: var(--color-text-muted); border: 1px solid rgba(108,140,255,0.4);">Документы: Отсутствуют</div>
+</article>
+<div class="controls">
+<button class="action-btn warn-btn" onclick="judgeFsb('reject')" type="button">❌ Отказать (НонРП/Ошибки)</button>
+<button class="action-btn skip-btn" onclick="judgeFsb('approve')" type="button">✅ Одобрить (Годен)</button>
+</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-fsb_shop" style="display:none;">
+<div class="section-head">
+<h2 style="color:#6c8cff;">Магазин ФСБ</h2>
+<p>Покупайте бонусы, иммунитеты и испытайте удачу за Баллы ФСБ!</p>
+</div>
+<div class="stats-grid" style="background: rgba(0,0,0,0.5); padding: 1.5rem; border-radius: 20px; border: 1px solid rgba(108,140,255,0.2);">
+<div class="stat"><span class="stat-label">Доступно Баллов ФСБ</span><div class="stat-value" id="fsbShopTotalPts" style="color:#6c8cff; font-size: 2.2rem;">0</div></div>
+</div>
+<div class="shop-grid" id="fsbShopItemsContainer"></div>
+</section>
+<section class="panel game-card fade-in" id="mode-fsb_admin" style="display:none;">
+<div class="section-head"><h2 style="color:#6c8cff;">Руководство ФСБ</h2><p>Управление составом сотрудников и выдача баллов.</p></div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(108, 140, 255, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 0.5rem; font-size: var(--text-base); color: #6c8cff;">➕ Выдача статуса ФСБ</h3>
+<select class="support-input" id="leadAddFsbSelect" style="margin-bottom: 1rem; width: 100%;"><option>Загрузка...</option></select>
+<button class="btn btn-secondary" id="leadAddFsbBtn" style="border-color: #6c8cff; color: #6c8cff; width: 100%;">Выдать статус Сотрудника ФСБ</button>
+<h4 style="margin-top: 1.5rem; color: var(--color-text-muted);">Список сотрудников ФСБ:</h4>
+<div id="leadFsbList" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+</div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(108, 140, 255, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: #6c8cff;">Управление Баллами ФСБ</h3>
+<select class="support-input" id="fsbAdminUserSelect" style="margin-bottom: 1rem;"><option>Загрузка...</option></select>
+<input class="support-input" id="fsbAdminPointsAmount" placeholder="Количество Баллов (+ или -)" style="margin-bottom: 1rem;" type="number"/>
+<button class="btn btn-primary" id="fsbAdminPointsBtn" style="width: 100%; background: #6c8cff; border-color: #6c8cff;">Выдать / Списать Баллы ФСБ</button>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-profile" style="display:none;">
+<div class="section-head">
+<h2>Личный Профиль</h2>
+<p>Ваша статистика, баланс и визуальная косметика.</p>
+</div>
+<div style="display: flex; align-items: center; gap: 1.5rem; background: rgba(13, 16, 32, 0.6); padding: 1.8rem; border-radius: 18px; border: 1px solid rgba(191, 198, 255, 0.3); box-shadow: inset 0 0 20px rgba(0,0,0,0.4);">
+<div class="avatar" id="profileAvatar" style="width: 85px; height: 85px; font-size: 2.2rem;">?</div>
+<div>
+<h3 id="profileName" style="font-size: 1.9rem; margin-bottom: 0.3rem; color: #fff;">Загрузка...</h3>
+<div style="color: var(--color-text-muted); font-size: 0.95rem;">Должность: Сотрудник проекта</div>
+</div>
+</div>
+<div class="stats-grid" style="margin-top: 1.2rem;">
+<div class="stat"><span class="stat-label">Игровой XP (Тренажер)</span><div class="stat-value" id="profileXp" style="color:var(--color-primary);">0</div></div>
+<div class="stat"><span class="stat-label">Реальный XP (отчёты)</span><div class="stat-value" id="profileRealXp" style="color:var(--color-success);">0</div></div>
+<div class="stat"><span class="stat-label">Доступно Баллов АП</span><div class="stat-value" id="profilePts" style="color:#ff8fc4;">0</div></div>
+</div>
+<div style="margin-top: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: var(--color-success);">Косметика (Инвентарь)</h3>
+<div id="cosmeticsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem;">
+<div style="padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); text-align: center; transition: transform 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+<div style="font-size: 2.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(255,191,71,0.5));">👑</div>
+<div style="font-weight: bold; margin-bottom: 1rem; font-size: 1.1rem;">Корона Лидера</div>
+<button class="btn btn-secondary" id="equipCrownBtn" style="width: 100%; padding: 0.8rem;">Надеть</button>
+</div>
+<div style="padding: 1.5rem; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); text-align: center; transition: transform 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+<div style="font-size: 2.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(162,108,255,0.5));">🌈</div>
+<div style="font-weight: bold; margin-bottom: 1rem; font-size: 1.1rem;">Цветной Ник</div>
+<button class="btn btn-secondary" id="equipColorBtn" style="width: 100%; padding: 0.8rem;">Надеть</button>
+</div>
+</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-reports_table" style="display:none;">
+<div class="section-head">
+<h2 style="color: #52c77b;">Таблица отчётов модерации</h2>
+<p>Сводка по датам: кто сдал норму, а кто халтурит.</p>
+</div>
+<div class="rt-controls">
+<button class="btn btn-secondary" id="rtPrevWeekBtn" style="padding: 0.6rem 1rem;">⬅️ Прошлая неделя</button>
+<h3 id="rtCurrentWeekLabel" style="margin:0; font-size: 1rem; font-weight: 800; color:#fff;">Текущая неделя</h3>
+<button class="btn btn-secondary" disabled="" id="rtNextWeekBtn" style="padding: 0.6rem 1rem;">Следующая неделя ➡️</button>
+</div>
+<div id="reportsTableWrapper">
+<div class="message-text" style="text-align:center; padding:2rem;">Загрузка данных...</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-creator" style="display:none;">
+<div class="section-head"><h2 style="color: #ff6b88;">Панель Создателя (John Wick)</h2></div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(108, 140, 255, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: var(--color-primary);">База Модераторов (Изменение XP)</h3>
+<p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1rem;">Руководство здесь не отображается. Укажите ИТОГОВОЕ значение, система сама добавит или отнимет разницу.</p>
+<div id="creatorDbContainer" style="max-height: 400px; overflow-y: auto;">
+             Загрузка базы...
+          </div>
+</div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255, 107, 136, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; font-size: var(--text-base); color: var(--color-primary);">Обычная Выдача / Изъятие XP</h3>
+<select class="support-input" id="creatorUserSelect" style="margin-bottom: 1rem;"><option>Загрузка...</option></select>
+<select class="support-input" id="creatorGiveType" style="margin-bottom: 1rem;">
+<option value="game">Игровой XP (Баланс на сайте)</option>
+<option value="report">Реальный XP (отчёты/Снятия)</option>
+</select>
+<input class="support-input" id="creatorXpAmount" placeholder="Количество XP (например: 100 или -50)" style="margin-bottom: 1rem;" type="number"/>
+<button class="btn btn-primary" id="creatorXpBtn" style="width: 100%;">Изменить баланс XP</button>
+</div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(162, 108, 255, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; font-size: var(--text-base); color: #a26cff;">Глобальные настройки</h3>
+<div style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.6); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+<span style="color:#fff; font-weight: 600; font-size: 0.95rem;">Блокировать функции без сданного отчета</span>
+<input id="requireReportsToggle" style="width:24px; height:24px; accent-color: #a26cff; cursor: pointer;" type="checkbox"/>
+</div>
+</div>
+<div class="t73-v156-creator-gemini-card" id="t73CreatorGeminiSettings">
+<div class="t73-v156-creator-gemini-head">
+<div>
+<h3>🤖 Gemini API для автопроверки отчётов</h3>
+<p>Один общий ключ задаётся здесь. Модераторы его не вводят: в форме отчёта остаётся только скриншот и кнопка проверки.</p>
+</div>
+<span class="t73-v156-creator-gemini-pill">gemini-2.5-flash</span>
+</div>
+<div class="t73-v156-creator-gemini-grid">
+<div class="admin-field">
+<label>Общий Gemini API key</label>
+<input autocapitalize="none" autocomplete="off" autocorrect="off" class="support-input" id="creatorGeminiApiKeyInput" inputmode="text" placeholder="AIza..." spellcheck="false" type="password"/>
+</div>
+<div class="t73-v156-creator-gemini-actions">
+<button class="btn btn-secondary" id="creatorPasteGeminiKeyBtn" type="button">📋 Вставить</button>
+<button class="btn btn-secondary" id="creatorToggleGeminiKeyBtn" type="button">👁 Показать</button>
+<button class="btn btn-primary" id="creatorSaveGeminiKeyBtn" type="button">💾 Сохранить общий ключ</button>
+</div>
+</div>
+<div class="t73-v156-creator-gemini-status" id="creatorGeminiKeyStatus">Ключ не показывается модераторам в форме отчёта. После сохранения они смогут запускать автопроверку.</div>
+</div>
+<div class="t73-v167-creator-deepseek-card" id="t73CreatorDeepSeekSettings">
+<div class="t73-v167-creator-deepseek-head">
+<div>
+<h3>⚙️ AI API для проверки и инструкции</h3>
+<p>Один общий ключ используется для автопроверки отчётов и помощника в разделе «Инструкция». Модераторы ключ не вводят.</p>
+</div>
+<span class="t73-v167-creator-deepseek-pill" id="creatorDeepSeekModelPill">deepseek-v4-pro + thinking</span>
+</div>
+<div class="t73-v167-creator-deepseek-grid">
+<div class="admin-field">
+<label>AI API key</label>
+<input autocapitalize="none" autocomplete="off" autocorrect="off" class="support-input" id="creatorDeepSeekApiKeyInput" inputmode="text" placeholder="sk-..." spellcheck="false" type="password"/>
+</div>
+<div class="admin-field">
+<label>Режим работы</label>
+<select class="support-input" id="creatorDeepSeekModelSelect">
+<option value="deepseek-v4-pro">Точный режим</option>
+<option value="deepseek-v4-flash">Быстрый режим</option>
+<option value="deepseek-reasoner">Совместимый режим</option>
+</select>
+</div>
+<div class="admin-field">
+<label>API endpoint</label>
+<input autocapitalize="none" autocomplete="off" autocorrect="off" class="support-input" id="creatorDeepSeekEndpointInput" spellcheck="false" type="text" value="https://api.deepseek.com/chat/completions"/>
+</div>
+<label class="t73-v167-creator-deepseek-check">
+<input checked="" id="creatorDeepSeekThinkingToggle" type="checkbox"/>
+<span>Включить глубокий анализ</span>
+</label>
+</div>
+<div class="t73-v167-creator-deepseek-actions">
+<button class="btn btn-secondary" id="creatorPasteDeepSeekKeyBtn" type="button">📋 Вставить ключ</button>
+<button class="btn btn-secondary" id="creatorToggleDeepSeekKeyBtn" type="button">👁 Показать</button>
+<button class="btn btn-secondary" id="creatorClearDeepSeekKeyBtn" type="button">🧹 Очистить</button>
+<button class="btn btn-primary" id="creatorSaveDeepSeekKeyBtn" type="button">💾 Сохранить API</button>
+</div>
+<div class="t73-v167-creator-deepseek-status" id="creatorDeepSeekKeyStatus">Ключ используется для автопроверки отчётов и помощника в инструкции.</div>
+</div>
+<div style="background: rgba(28, 10, 20, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255, 107, 136, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 0.5rem; font-size: var(--text-base); color: var(--color-error);">Панель Троллинга 🤡</h3>
+<input class="support-input" id="trollCustomNick" placeholder="Свой ник (оставь пустым для рандома)" style="margin-bottom: 1rem; width: 100%;" type="text"/>
+<input class="support-input" id="trollDebtAmount" placeholder="Сумма долга (напр. 5000)" style="margin-bottom: 1rem; width: 100%;" type="number"/>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+<button class="btn btn-secondary" id="trollDebtBtn" style="border-color: var(--color-error); color: var(--color-error); grid-column: span 2;">🤡 Влепить огромный долг XP</button>
+<button class="btn btn-secondary" id="trollWipeXpBtn" style="border-color: var(--color-error); color: var(--color-error);">⬇️ Обнулить XP</button>
+<button class="btn btn-secondary" id="trollRenameBtn" style="border-color: var(--color-warning); color: var(--color-warning);">🤡 Сменить ник</button>
+<button class="btn btn-secondary" id="trollDeleteBtn" style="border-color: var(--color-error); color: var(--color-error); grid-column: span 2;">🗑️ Удалить аккаунт</button>
+<h4 style="grid-column: span 2; color: #8b00ff; margin-top: 1rem; margin-bottom: 0.2rem;">Эффекты на страницу:</h4>
+<button class="btn btn-secondary" id="trollEffectBobo" style="border-color: #8b00ff; color: #8b00ff;">🪲 Жуки в бобофоне</button>
+<button class="btn btn-secondary" id="trollEffectBlur" style="border-color: #8b00ff; color: #8b00ff;">👓 Мыло (Размытие)</button>
+<button class="btn btn-secondary" id="trollEffectDrunk" style="border-color: #8b00ff; color: #8b00ff;">🥴 Пьяный мастер</button>
+<button class="btn btn-secondary" id="trollEffectGhost" style="border-color: #8b00ff; color: #8b00ff;">👻 Призрак</button>
+<button class="btn btn-secondary" id="trollEffectFlip" style="border-color: #8b00ff; color: #8b00ff;">🙃 Переворот</button>
+<button class="btn btn-secondary" id="trollEffectRainbow" style="border-color: #8b00ff; color: #8b00ff;">🌈 Рейв</button>
+<button class="btn btn-primary" id="trollEffectClear" style="background: #8b00ff; border-color: #8b00ff; grid-column: span 2;">✨ Снять все эффекты</button>
+</div>
+</div>
+<div style="background: rgba(10, 23, 14, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(82, 199, 123, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 0.5rem; font-size: var(--text-base); color: var(--color-success);">👑 Выдача прав Руководства</h3>
+<select class="support-input" id="creatorAdminSelect" style="margin-bottom: 1rem; width: 100%;"><option>Загрузка...</option></select>
+<select class="support-input" id="creatorAdminRole" style="margin-bottom: 1rem; width: 100%;">
+<option value="leadership">Руководство (Модерация)</option>
+<option value="ap_admin">Руководство (АП)</option>
+<option value="fsb_admin">Руководство (ФСБ)</option>
+</select>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+<button class="btn btn-secondary" id="creatorAddAdminBtn" style="border-color: var(--color-success); color: var(--color-success);">➕ Добавить</button>
+<button class="btn btn-secondary" id="creatorRemoveAdminBtn" style="border-color: var(--color-error); color: var(--color-error);">➖ Забрать права</button>
+</div>
+<div id="creatorAdminsList" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-leadership" style="display:none;">
+<div class="section-head"><h2 style="color: #52c77b;">Руководство (Модерация)</h2></div>
+<div style="background: rgba(10, 23, 14, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(82, 199, 123, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 0.5rem; font-size: var(--text-base); color: var(--color-warning);">✏️ Изменить цену любого товара</h3>
+<input class="support-input" id="editAnyItemId" placeholder="ID товара (например, m_1 или cmod_123)" style="margin-bottom: 1rem;" type="text"/>
+<input class="support-input" id="editAnyItemPrice" placeholder="Новая цена (XP)" style="margin-bottom: 1rem;" type="number"/>
+<button class="btn btn-secondary" id="changeAnyPriceBtn" style="border-color: var(--color-warning); color: var(--color-warning); width:100%;">Сохранить новую цену</button>
+</div>
+<div style="background: rgba(10, 23, 14, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(82, 199, 123, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 0.5rem; font-size: var(--text-base); color: var(--color-success);">➕ Выдача статуса Модератора</h3>
+<select class="support-input" id="leadAddModSelect" style="margin-bottom: 1rem; width: 100%;"><option>Загрузка...</option></select>
+<div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+<button class="btn btn-secondary" id="leadAddModBtn" style="border-color: var(--color-success); color: var(--color-success);">Выдать статус</button>
+</div>
+<h4 style="margin-top: 1.5rem; color: var(--color-text-muted);">Список модераторов:</h4>
+<div id="leadModList" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+</div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(162, 108, 255, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: #a26cff;">🕵️‍♂️ Тайный покупатель (Скрытая проверка)</h3>
+<select class="support-input" id="hiddenCheckUser" style="margin-bottom: 1rem;"><option>Загрузка...</option></select>
+<input class="support-input" id="hiddenCheckText" placeholder="Введите кастомный вопрос/сообщение..." style="margin-bottom: 1rem;" type="text"/>
+<select class="support-input" id="hiddenCheckType" style="margin-bottom: 1rem;">
+<option value="good">Без нарушения (good)</option>
+<option value="warn">Пред/Мут (warn)</option>
+<option value="ban">Бан/Перма (ban)</option>
+</select>
+<button class="btn btn-secondary" id="sendHiddenCheckBtn" style="border-color: #a26cff; color: #a26cff; width:100%;">Закинуть скрытую проверку</button>
+</div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(108, 140, 255, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: #6c8cff;">✏️ Редактор базы сообщений (Модерация)</h3>
+<input class="support-input" id="customModText" placeholder="Текст сообщения для тренажёра..." style="margin-bottom: 1rem;" type="text"/>
+<select class="support-input" id="customModType" style="margin-bottom: 1rem;">
+<option value="good">Без нарушения (good)</option>
+<option value="warn">Пред/Мут (warn)</option>
+<option value="ban">Бан/Перма (ban)</option>
+</select>
+<button class="btn btn-secondary" id="addCustomModMsgBtn" style="border-color: #6c8cff; color: #6c8cff; width:100%;">Добавить сообщение в общую базу</button>
+</div>
+<div style="background: rgba(10, 23, 14, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(82, 199, 123, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: var(--color-success);">Управление XP модераторов</h3>
+<div class="admin-field">
+<label>Сотрудник:</label>
+<select class="support-input" id="leadershipUserSelect"><option>Загрузка...</option></select>
+</div>
+<div class="admin-field">
+<label>Тип выдачи:</label>
+<select class="support-input" id="leadershipGiveType">
+<option value="game">Игровой XP (Баланс на сайте)</option>
+<option value="report">Реальный XP (отчёты/Снятия)</option>
+</select>
+</div>
+<div class="admin-field">
+<label>Количество XP:</label>
+<input class="support-input" id="leadershipXpAmount" placeholder="Например: 50" type="number"/>
+</div>
+<div class="admin-action-grid">
+<button class="btn btn-primary" id="leadershipXpBtn" style="grid-column: 1 / -1;">Выдать / Списать XP</button>
+<button class="btn btn-secondary" id="leadershipDeleteBtn" style="border-color: var(--color-error); color: var(--color-error); grid-column: 1 / -1;">🗑️ Удалить аккаунт</button>
+</div>
+</div>
+<div style="background: rgba(10, 23, 14, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(82, 199, 123, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: var(--color-warning);">Управление Магазином (Модерация)</h3>
+<div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+<input class="support-input" id="modShopItemTitle" placeholder="Название товара" type="text"/>
+<input class="support-input" id="modShopItemDesc" placeholder="Описание" type="text"/>
+<input class="support-input" id="modShopItemPrice" placeholder="Цена (XP)" type="number"/>
+<input class="support-input" id="modShopItemIcon" placeholder="Иконка (эмодзи, напр. 🎁)" type="text"/>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+<button class="btn btn-secondary" id="addModShopItemBtn" style="border-color: var(--color-success); color: var(--color-success);">➕ Добавить</button>
+<button class="btn btn-secondary" id="editModShopItemBtn" style="border-color: var(--color-warning); color: var(--color-warning);">✏️ Изменить цену</button>
+<button class="btn btn-secondary" id="deleteModShopItemBtn" style="border-color: var(--color-error); color: var(--color-error);">🗑️ Удалить</button>
+</div>
+<h3 style="margin-bottom: 1rem; margin-top: 1.5rem; color: var(--color-warning);">Конструктор Рулетки (Модерация)</h3>
+<div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+<select class="support-input" id="modRouletteSlot">
+<option value="leg">Легендарный слот</option>
+<option value="rare">Редкий слот</option>
+<option value="fail">Обычный слот</option>
+<option value="fine">Слот Штрафа</option>
+</select>
+<input class="support-input" id="modRouletteText" placeholder="Текст (напр. 1000 XP)" type="text"/>
+<input class="support-input" id="modRouletteVal" placeholder="Значение (отрицательное = выдача, напр. -1000)" type="number"/>
+</div>
+<button class="btn btn-secondary" id="updateModRouletteBtn" style="width: 100%; border-color: var(--color-success); color: var(--color-success);">Обновить слот рулетки</button>
+</div>
+<div style="background: rgba(13, 16, 32, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(108, 140, 255, 0.3);">
+<h3 style="margin-bottom: 1rem; color: var(--color-primary);">Заявки на Неактив</h3>
+<button class="btn btn-secondary" id="viewInactivesBtnLegacy" style="width:100%;">Проверить неактивы</button>
+<div id="inactivesListAreaLegacy" style="display:none; flex-direction: column; gap: 0.75rem; margin-top: 1rem;"></div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-ap_admin" style="display:none;">
+<div class="section-head"><h2 style="color: #ff8fc4;">Руководство АП</h2></div>
+<div style="background: rgba(35, 10, 26, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255, 143, 196, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 0.5rem; font-size: var(--text-base); color: #ff8fc4;">➕ Выдача статуса АП</h3>
+<select class="support-input" id="leadAddApSelect" style="margin-bottom: 1rem; width: 100%;"><option>Загрузка...</option></select>
+<div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+<button class="btn btn-secondary" id="leadAddApBtn" style="border-color: #ff8fc4; color: #ff8fc4;">Выдать статус</button>
+</div>
+<h4 style="margin-top: 1.5rem; color: var(--color-text-muted);">Список АП:</h4>
+<div id="leadApList" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+</div>
+<div style="background: rgba(35, 10, 26, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255, 143, 196, 0.5); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: #ff8fc4;">✏️ Редактор базы вопросов (АП)</h3>
+<input class="support-input" id="customApTitle" placeholder="Заголовок/Тема..." style="margin-bottom: 1rem;" type="text"/>
+<input class="support-input" id="customApText" placeholder="Текст вопроса игрока..." style="margin-bottom: 1rem;" type="text"/>
+<input class="support-input" id="customApKeywords" placeholder="Ключевые слова ответа (через запятую)..." style="margin-bottom: 1rem;" type="text"/>
+<button class="btn btn-secondary" id="addCustomApMsgBtn" style="border-color: #ff8fc4; color: #ff8fc4; width:100%; margin-top: 1rem;">Добавить вопрос в общую базу</button>
+</div>
+<div style="background: rgba(35, 10, 26, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255, 143, 196, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: #ff8fc4;">Управление Баллами АП</h3>
+<select class="support-input" id="apAdminUserSelect" style="margin-bottom: 1rem;"><option>Загрузка...</option></select>
+<select class="support-input" id="apAdminGiveType" style="margin-bottom: 1rem;">
+<option value="game">Игровой XP (Баланс на сайте)</option>
+<option value="report">Реальный XP (отчёты/Снятия)</option>
+</select>
+<input class="support-input" id="apAdminPointsAmount" placeholder="Количество Баллов (+ или -)" style="margin-bottom: 1rem;" type="number"/>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+<button class="btn btn-primary" id="apAdminPointsBtn" style="grid-column: span 2;">Выдать / Списать Баллы</button>
+<button class="btn btn-secondary" id="apAdminDeleteBtn" style="border-color: var(--color-error); color: var(--color-error); grid-column: span 2;">🗑️ Удалить аккаунт</button>
+</div>
+</div>
+<div style="background: rgba(35, 10, 26, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255, 143, 196, 0.3); margin-bottom: 1.5rem;">
+<h3 style="margin-bottom: 1rem; color: #ff8fc4;">Управление Магазином (АП)</h3>
+<div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+<input class="support-input" id="apShopItemTitle" placeholder="Название товара" type="text"/>
+<input class="support-input" id="apShopItemDesc" placeholder="Описание" type="text"/>
+<input class="support-input" id="apShopItemPrice" placeholder="Цена (Баллы)" type="number"/>
+<input class="support-input" id="apShopItemIcon" placeholder="Иконка (эмодзи, напр. 🎁)" type="text"/>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+<button class="btn btn-secondary" id="addApShopItemBtn" style="border-color: #ff8fc4; color: #ff8fc4;">➕ Добавить</button>
+<button class="btn btn-secondary" id="editApShopItemBtn" style="border-color: var(--color-warning); color: var(--color-warning);">✏️ Изменить</button>
+<button class="btn btn-secondary" id="deleteApShopItemBtn" style="border-color: var(--color-error); color: var(--color-error);">🗑️ Удалить</button>
+</div>
+<h3 style="margin-bottom: 1rem; margin-top: 1.5rem; color: #ff8fc4;">Конструктор Рулетки АП</h3>
+<div style="display: grid; gap: 1rem; margin-bottom: 1rem;">
+<select class="support-input" id="apRouletteSlot">
+<option value="leg">Легендарный слот</option>
+<option value="rare">Редкий слот</option>
+<option value="fail">Обычный слот</option>
+</select>
+<input class="support-input" id="apRouletteText" placeholder="Текст (напр. 100 Баллов)" type="text"/>
+<input class="support-input" id="apRouletteVal" placeholder="Значение (отрицательное = выдача, напр. -100)" type="number"/>
+</div>
+<button class="btn btn-secondary" id="updateApRouletteBtn" style="width: 100%; border-color: #ff8fc4; color: #ff8fc4;">Обновить слот рулетки</button>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-timeattack" style="display:none;">
+<div class="section-head">
+<h2>Спидран (На время) ⏱️</h2>
+<p>У вас есть ровно 60 секунд. Каждая ошибка отнимает 3 секунды. Сколько сообщений вы успеете разобрать?</p>
+</div>
+<div class="timer-display" id="taTimer">01:00</div>
+<div class="stats-grid" style="margin-bottom: 1rem;">
+<div class="stat"><span class="stat-label">Счет</span><div class="stat-value" id="taScore" style="color: var(--color-success); font-size: 1.8rem;">0</div></div>
+<div class="stat"><span class="stat-label">Ошибки</span><div class="stat-value" id="taMistakes" style="color: var(--color-error); font-size: 1.8rem;">0</div></div>
+</div>
+<div id="taStartScreen" style="text-align: center; padding: 3rem 0;">
+<button class="btn btn-primary" id="taStartBtn" style="font-size: 1.2rem; padding: 1.5rem 4rem; box-shadow: 0 10px 30px rgba(255, 191, 71, 0.5);">Начать заезд!</button>
+</div>
+<div class="feed" id="taGameScreen" style="display:none;">
+<article class="message-card">
+<div class="channel"><span class="channel-dot" style="background:#ffbf47;"></span># speedrun / moderation</div>
+<div class="author-row">
+<div class="avatar" id="taAvatar">T7</div>
+<div><div class="author-name" id="taAuthorName">System</div><div class="author-meta">Быстрее принимайте решение!</div></div>
+</div>
+<div class="message-text" id="taMessageText" style="font-size: 1.15rem; font-weight: 500;">Загрузка...</div>
+</article>
+<div class="controls">
+<button class="action-btn skip-btn" data-ta-action="good" type="button">✅ Без нарушения</button>
+<button class="action-btn warn-btn" data-ta-action="warn" type="button">⚠️ Пред / Мут</button>
+<button class="action-btn ban-btn" data-ta-action="ban" type="button">🔨 Бан</button>
+</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-moderation">
+<div class="section-head">
+<h2>Панель модератора</h2>
+<p>Сообщения и нарушения появятся только после нажатия «Начать смену».</p>
+</div>
+<div class="stats-grid">
+<div class="stat"><span class="stat-label">Обработано</span><div class="stat-value" id="resolvedValue">0</div></div>
+<div class="stat"><span class="stat-label">Правильных</span><div class="stat-value" id="correctValue">0</div></div>
+<div class="stat"><span class="stat-label">Ошибки</span><div class="stat-value" id="mistakeValue">0</div></div>
+<div class="stat"><span class="stat-label">Остаток XP</span><div class="stat-value" id="xpValue" style="color: var(--color-primary);">0</div></div>
+</div>
+<div>
+<div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+<div id="resultBanner" style="display: flex; justify-content: space-between; font-size: 0.95rem; margin-top: 0.8rem; color: var(--color-text-muted);">
+<span><strong>Результат:</strong> смена ещё не начата</span>
+<span id="resultHint">Нажми «Начать смену», чтобы получить первое сообщение.</span>
+</div>
+</div>
+<div class="feed">
+<article class="message-card">
+<div class="channel"><span class="channel-dot"></span># cherepovets-89 / moderation</div>
+<div class="author-row">
+<div class="avatar" id="avatarBox">T7</div>
+<div><div class="author-name" id="authorName">System</div><div class="author-meta" id="authorMeta">Сообщение появится после старта смены</div></div>
+</div>
+<div class="message-text" id="messageText">Пока сообщений нет. Нажми «Начать смену».</div>
+<div class="hint" id="hintText">Оценка: без нарушения, устное/пред/мут, бан/перма/глобал.</div>
+</article>
+<div class="controls">
+<button class="action-btn skip-btn" data-action="good" type="button">✅ Без нарушения</button>
+<button class="action-btn warn-btn" data-action="warn" type="button">⚠️ Устное / Пред / Мут</button>
+<button class="action-btn ban-btn" data-action="ban" type="button">🔨 Бан / Перма / Глобал</button>
+</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-complaints" style="display:none;">
+<div class="section-head">
+<h2>Жалобы пользователей</h2>
+<p>Рассматривайте репорты из раздела жалоб. Одобряйте, отказывайте или передавайте КГМ/ГМ.</p>
+</div>
+<div class="stats-grid">
+<div class="stat"><span class="stat-label">Рассмотрено</span><div class="stat-value" id="compResolvedValue">0</div></div>
+<div class="stat"><span class="stat-label">Верно</span><div class="stat-value" id="compCorrectValue">0</div></div>
+<div class="stat"><span class="stat-label">Ошибки</span><div class="stat-value" id="compMistakeValue">0</div></div>
+<div class="stat"><span class="stat-label">Общий XP</span><div class="stat-value" id="compXpValue" style="color: var(--color-primary);">0</div></div>
+</div>
+<div class="feed">
+<article class="message-card">
+<div class="channel"><span class="channel-dot" style="background:#ff6b88;"></span># cherepovets-89 / reports</div>
+<div class="author-row">
+<div class="avatar" style="background: conic-gradient(from 210deg, #ff6b88, #ff3b60, #ff6b88);">Ж</div>
+<div><div class="author-name" id="compAuthor">Жалоба скрыта</div><div class="author-meta" id="compMeta">Появится после начала смены</div></div>
+</div>
+<div class="message-text" id="compText">Ожидание жалобы...</div>
+<div id="compEvidence" style="background: rgba(0,0,0,0.6); padding: 1.2rem; border-radius: 12px; font-size: 0.95rem; color: var(--color-text-muted); border: 1px solid var(--theme-glow);">Доказательства: Отсутствуют</div>
+</article>
+<div class="controls">
+<button class="action-btn warn-btn" data-comp-action="reject" type="button">❌ Отказать</button>
+<button class="action-btn skip-btn" data-comp-action="approve" type="button">✅ Одобрить</button>
+<button class="action-btn pass-btn" data-comp-action="pass" type="button">👑 Передать КГМ</button>
+</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-support" style="display:none;">
+<div class="section-head">
+<h2>Панель агента поддержки</h2>
+<p>Открывай запросы и помогай быстро, спокойно и по делу.</p>
+</div>
+<div class="stats-grid">
+<div class="stat"><span class="stat-label">Вопросов</span><div class="stat-value" id="supportResolvedValue">0</div></div>
+<div class="stat"><span class="stat-label">Зачтено</span><div class="stat-value" id="supportCorrectValue">0</div></div>
+<div class="stat"><span class="stat-label">Ошибки</span><div class="stat-value" id="supportMistakeValue">0</div></div>
+<div class="stat"><span class="stat-label">Общий XP</span><div class="stat-value" id="supportXpValue" style="color: var(--color-primary);">0</div></div>
+</div>
+<div>
+<div class="xp-bar"><div class="xp-fill" id="supportXpFill"></div></div>
+<div id="supportBanner" style="display: flex; justify-content: space-between; font-size: 0.95rem; margin-top: 0.8rem; color: var(--color-text-muted);">
+<span><strong>Результат:</strong> смена ещё не начата</span>
+<span id="supportBannerHint">Ожидание вопроса...</span>
+</div>
+</div>
+<div class="feed">
+<article class="message-card">
+<div class="channel"><span class="channel-dot"></span># cherepovets-89 / support</div>
+<div class="author-row">
+<div class="avatar">AP</div>
+<div><div class="author-name" id="supportQuestionTitle">Вопрос скрыт</div><div class="author-meta" id="supportMeta">Появится после начала смены</div></div>
+</div>
+<div class="message-text" id="supportQuestionText">Ожидание вопроса...</div>
+<div class="support-answer-row">
+<div class="support-answer-row-inner">
+<input class="support-input" id="supportAnswerInput" placeholder="Напиши ответ игроку..." type="text"/>
+<button class="support-check-btn" id="supportCheckBtn" type="button">Проверить ответ</button>
+</div>
+<div id="supportResultText" style="font-weight: 800; font-size: 1.15rem; min-height: 1.5rem; padding-left: 0.5rem;"></div>
+</div>
+</article>
+<button class="btn btn-secondary" id="supportNextBtn" style="width:100%; min-height: 56px;" type="button">Следующий вопрос ➡️</button>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-quests" style="display:none;">
+<div class="section-head">
+<h2>Система Квестов</h2>
+<p>Выполняй задания в тренажёрах и получай бонусный XP на свой баланс.</p>
+</div>
+<div class="feed" id="questsContainer" style="display: grid; gap: 1.5rem;"></div>
+</section>
+<section class="panel game-card fade-in" id="mode-leaderboard" style="display:none;">
+<div class="section-head">
+<h2>Таблица лидеров (Топ-10)</h2>
+<p>Отображаются только действующие сотрудники (Модераторы / АП). Топ Модерации формируется только по Реальному XP.</p>
+</div>
+<div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+<button class="btn btn-primary" id="lbBtnMod" style="flex:1;">Топ Модерации (XP)</button>
+<button class="btn btn-secondary" id="lbBtnAp" style="flex:1;">Топ АП (Баллы)</button>
+</div>
+<div class="feed" id="leaderboardList">
+<div class="message-text" style="text-align: center; padding: 2rem;">⏳ Загрузка данных лидеров...</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-guide" style="display:none;">
+<div class="section-head">
+<h2>Руководство Сервера</h2>
+<p>Контакты руководящего состава для связи.</p>
+</div>
+<div class="feed">
+<article class="message-card" style="min-height: auto; gap: 2rem; background: rgba(13, 16, 32, 0.6);">
+<div>
+<h3 style="color: #6c8cff; margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(108,140,255,0.3); padding-bottom: 0.3rem;">Модерация</h3>
+<div style="display: grid; gap: 0.8rem; font-size: var(--text-sm); color: var(--color-text-muted);">
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>Главный Модератор</strong> — Lexa_Mackenzie</span> <a href="https://vk.com/id783455796" style="color:var(--color-primary);text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ЗГМ</strong> — John_Wick</span> <a href="https://vk.com/id628466808" style="color:var(--color-primary);text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ЗГМ</strong> — Andrey_Caypen</span> <a href="https://vk.ru/andreycaypen" style="color:var(--color-primary);text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>Куратор модерации</strong> — Hunter_Mackenzie</span> <a href="https://vk.com/id641685097" style="color:var(--color-primary);text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+</div>
+</div>
+<div>
+<h3 style="color: #ffbf47; margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(255,191,71,0.3); padding-bottom: 0.3rem;">Администрация</h3>
+<div style="display: grid; gap: 0.8rem; font-size: var(--text-sm); color: var(--color-text-muted);">
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>Главный Администратор</strong> — Lars_Crown</span> <a href="https://vk.ru/larsellorcrowner" style="color:#ffbf47;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ЗГА</strong> — Egor_Versachi</span> <a href="https://vk.ru/id775315885" style="color:#ffbf47;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ЗГА</strong> — Oskar_Lofrein</span> <a href="https://vk.ru/oooutlivq" style="color:#ffbf47;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>Куратор Администрации</strong> — Kiruha_Lubera</span> <a href="https://vk.ru/kiruha_wl" style="color:#ffbf47;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+</div>
+</div>
+<div>
+<h3 style="color: #52c77b; margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(82,199,123,0.3); padding-bottom: 0.3rem;">Агенты Поддержки</h3>
+<div style="display: grid; gap: 0.8rem; font-size: var(--text-sm); color: var(--color-text-muted);">
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>Куратор АП</strong></span> <a href="https://vk.ru/ioanalost" style="color:#52c77b;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>Заместитель Куратора АП</strong></span> <a href="https://vk.com/id861801616" style="color:#52c77b;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+</div>
+</div>
+<div>
+<h3 style="color: #ff6b88; margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(255,107,136,0.3); padding-bottom: 0.3rem;">Организации</h3>
+<div style="display: grid; gap: 0.8rem; font-size: var(--text-sm); color: var(--color-text-muted);">
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ГС ОПГ</strong> — Mark_Pchelkin</span> <a href="https://vk.ru/marikaye2" style="color:#ff6b88;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ЗГС ОПГ</strong> — Beluga_Cats</span> <a href="https://vk.com/id844485943" style="color:#ff6b88;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ГС ГОСС</strong> — Danik_Abramov</span> <a href="https://vk.com/id584818435" style="color:#ff6b88;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+<div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;"><span><strong>ЗГС ГОСС</strong> — Mia_Seeyaside</span> <a href="https://vk.com/id13802780" style="color:#ff6b88;text-decoration:none; font-weight: bold;" target="_blank">[VK]</a></div>
+</div>
+</div>
+</article>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-about" style="display:none;">
+<div class="section-head">
+<h2>О команде</h2>
+<p>Раздел про создателей.</p>
+</div>
+<div class="feed">
+<article class="message-card">
+<div class="channel"><span class="channel-dot"></span># project / team</div>
+<div class="author-row">
+<div class="avatar">JW</div>
+<div><div class="author-name">John Wick</div><div class="author-meta">Автор проекта</div></div>
+</div>
+<div class="message-text">Сайт создан <strong style="color:var(--theme-accent);">John Wick</strong> при поддержке <strong style="color:var(--color-success);">Леха Матиз</strong>, <strong style="color:var(--color-warning);">Руфатик бурмалдатик</strong> и <strong style="color:#ff8fc4;">Евгения Бабешко</strong>.</div>
+</article>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-shop" style="display:none;">
+<div class="section-head">
+<h2>Магазин &amp; Игры (Модерация)</h2>
+<p>Трать накопленные XP на скидки, бонусы или испытай удачу в азартных играх!</p>
+</div>
+<div class="stats-grid" style="background: rgba(0,0,0,0.5); padding: 1.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+<div class="stat"><span class="stat-label">Доступно Игрового XP (Только Игры)</span><div class="stat-value" id="shopGameXp" style="color:var(--color-warning); font-size: 2.2rem;">0</div></div>
+<div class="stat"><span class="stat-label">Доступно Реального XP (Снятие и тд)</span><div class="stat-value" id="shopRealXp" style="color:var(--color-success); font-size: 2.2rem;">0</div></div>
+</div>
+<div class="shop-grid" id="shopItemsContainer"></div>
+</section>
+<section class="panel game-card fade-in" id="mode-ap_shop" style="display:none;">
+<div class="section-head"><h2 style="color:#ff8fc4;">Магазин АП</h2><p>Трать накопленные Баллы на снятие наказаний или испытай удачу!</p></div>
+<div class="stats-grid" style="background: rgba(0,0,0,0.5); padding: 1.5rem; border-radius: 20px; border: 1px solid rgba(255,143,196,0.2);">
+<div class="stat"><span class="stat-label">Доступно Баллов</span><div class="stat-value" id="apShopTotalPts" style="color:#ff8fc4; font-size: 2.2rem;">0</div></div>
+<div class="stat"><span class="stat-label">Потрачено</span><div class="stat-value" id="apShopSpentPts" style="font-size: 2.2rem;">0</div></div>
+</div>
+<div class="shop-grid" id="apShopItemsContainer"></div>
+</section>
+<section class="panel game-card fade-in" id="mode-report" style="display:none;">
+<div class="section-head">
+<h2>Форма отчётности</h2>
+<p>Сдайте свой ежедневный отчет онлайна из Discord сюда.</p>
+</div>
+<div class="message-card" id="reportAccessWarning" style="min-height: auto; align-content: center; text-align: center; color: var(--color-warning);">
+<div style="font-size: 3.5rem; margin-bottom: 1rem;">🔒</div>
+          Доступ закрыт! <br/><span style="font-size: var(--text-sm); color: var(--color-text-muted);">Раздел доступен только действующим сотрудникам.</span>
+</div>
+<div class="feed" id="reportFormArea" style="display:none;">
+<article class="message-card" style="min-height: auto; gap: 1.5rem;">
+<div class="channel"><span class="channel-dot" style="background:#a26cff;"></span># cherepovets-89 / reports</div>
+<div class="author-row">
+<div class="avatar" style="background: conic-gradient(from 210deg, #a26cff, #c4a1ff, #a26cff);">R</div>
+<div><div class="author-name">Отчет Discord (Онлайн)</div><div class="author-meta">Заполните форму честно</div></div>
+</div>
+<div class="support-answer-row">
+<div class="support-answer-row-inner" style="flex-direction: column; gap: 1rem;">
+<div class="admin-field"><label>Ваш NickName:</label><input class="support-input" id="reportNickInput" placeholder="Введите никнейм" type="text"/></div>
+<div class="admin-field"><label>Проделанная работа за день:</label><textarea class="support-input" id="reportWorkInput" placeholder="Что вы сегодня сделали?" rows="3"></textarea></div>
+<div class="admin-field"><label>Дата (Только сегодня и вчера):</label><input class="support-input" id="reportDateInput" type="date"/></div>
+<div class="admin-field"><label>Ссылка на доказательства (Imgur/Yapx):</label><input class="support-input" id="reportLinkInput" placeholder="https://..." type="url"/></div>
+<div class="admin-field" style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 2px dashed rgba(255,255,255,0.2);">
+<label style="color: #fff; font-weight: bold;">ИЛИ загрузите скриншот напрямую:</label>
+<input accept="image/*" class="support-input" id="reportFileInput" style="border: none; padding: 0; margin-top: 0.8rem; background: transparent;" type="file"/>
+</div>
+<button class="support-check-btn" id="submitReportBtn" style="margin-top: 1rem; width: 100%;" type="button">Отправить отчёт</button>
+</div>
+<div class="support-result" id="reportResultText" style="font-weight: 800; font-size: 1.1rem; text-align: center; margin-top: 1rem;"></div>
+</div>
+</article>
+<div id="adminPanelArea" style="display:none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+<h3 style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--theme-accent); text-transform: uppercase; font-weight: 900; letter-spacing: 0.05em;">Панель Руководства (Проверка)</h3>
+<button class="btn btn-secondary" id="viewReportsBtn" style="width:100%; border-color: var(--theme-accent); color: var(--theme-btn-text); background: var(--theme-accent); box-shadow: 0 8px 20px var(--theme-glow);" type="button">Проверить сданные отчеты</button>
+</div>
+<div id="reportsListArea" style="display:none; margin-top: 1.5rem; flex-direction: column; gap: 1.2rem;"></div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-inactives" style="display:none;">
+<div class="section-head">
+<h2 style="color: #c4a1ff;">Заявки на Неактив</h2>
+<p>Отправьте заявление, если не сможете выполнять норму в ближайшие дни.</p>
+</div>
+<div class="message-card" id="inactiveAccessWarning" style="min-height: auto; align-content: center; text-align: center; color: var(--color-warning);">
+<div style="font-size: 3.5rem; margin-bottom: 1rem;">🔒</div>
+          Доступ закрыт! <br/><span style="font-size: var(--text-sm); color: var(--color-text-muted);">Раздел доступен только действующим сотрудникам.</span>
+</div>
+<div class="feed" id="inactiveFormArea" style="display:none;">
+<article class="message-card" style="min-height: auto; gap: 1.5rem;">
+<div class="channel"><span class="channel-dot" style="background:#c4a1ff;"></span># cherepovets-89 / inactives</div>
+<div class="author-row">
+<div class="avatar" style="background: conic-gradient(from 210deg, #c4a1ff, #a26cff, #c4a1ff);">Z</div>
+<div><div class="author-name">Форма заявления</div><div class="author-meta">Заполните все поля</div></div>
+</div>
+<div class="support-answer-row" style="gap: 1rem;">
+<div class="admin-field"><label>Ваш Никнейм:</label><input class="support-input" id="inactiveNickInput" placeholder="Введите никнейм" type="text"/></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%;">
+<div class="admin-field"><label>С (дата):</label><input class="support-input" id="inactiveDateFrom" type="date"/></div>
+<div class="admin-field"><label>По (дата):</label><input class="support-input" id="inactiveDateTo" type="date"/></div>
+</div>
+<div class="admin-field"><label>Причина неактива:</label><textarea class="support-input" id="inactiveReasonInput" placeholder="Опишите причину подробно..." rows="3"></textarea></div>
+<button class="support-check-btn" id="submitInactiveBtn" style="margin-top: 1rem; width: 100%; background: linear-gradient(135deg, #a26cff, #c4a1ff); box-shadow: 0 10px 30px rgba(162,108,255,0.4);" type="button">Отправить Заявку</button>
+<div class="support-result" id="inactiveResultText" style="font-weight: 800; font-size: 1.1rem; text-align: center; margin-top: 1rem;"></div>
+</div>
+</article>
+<div id="adminPanelAreaInactives" style="display:none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+<h3 style="margin-bottom: 1.5rem; font-size: 1.2rem; color: #c4a1ff; text-transform: uppercase; font-weight: 900; letter-spacing: 0.05em;">Панель Руководства (Неактивы)</h3>
+<button class="btn btn-secondary" id="viewInactivesBtn" style="width:100%; border-color: #c4a1ff; color: #111; background: #c4a1ff; box-shadow: 0 8px 20px rgba(162, 108, 255, 0.4);" type="button">Проверить заявки на неактив</button>
+</div>
+<div id="inactivesListArea" style="display:none; flex-direction: column; gap: 1.2rem; margin-top: 1.5rem;"></div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-admin_log" style="display:none;">
+<div class="section-head">
+<h2 style="color: #ffbf47;">Логи выдачи (Модерация)</h2>
+<p>Покупки из магазина и выигрыши в Рулетку. Нажимайте «Отметить как выданное» после выдачи в Discord.</p>
+</div>
+<button class="btn btn-secondary" id="loadAdminLogsBtn" style="width:100%; margin-bottom:1.5rem; border-color: var(--theme-accent); color: var(--theme-btn-text); background: var(--theme-accent); box-shadow: 0 8px 20px var(--theme-glow);" type="button">🔄 Обновить список</button>
+<div class="feed" id="adminLogsArea">
+<div class="message-text" style="text-align: center; padding: 2rem;">Нажмите «Обновить список»</div>
+</div>
+</section>
+<section class="panel game-card fade-in" id="mode-ap_admin_log" style="display:none;">
+<div class="section-head"><h2 style="color: #ff8fc4;">Логи выдачи (АП)</h2><p>Покупки агентов поддержки из магазина АП.</p></div>
+<button class="btn btn-secondary" id="loadApAdminLogsBtn" style="width:100%; margin-bottom:1.5rem; border-color: var(--theme-accent); color: var(--theme-btn-text); background: var(--theme-accent); box-shadow: 0 8px 20px var(--theme-glow);" type="button">🔄 Обновить список логов АП</button>
+<div class="feed" id="apAdminLogsArea">
+<div class="message-text" style="text-align: center; padding: 2rem;">Нажмите «Обновить список»</div>
+</div>
+</section>
+<aside class="panel side fade-in">
+<div class="section-head">
+<h2>Лог смены</h2>
+<p>Здесь фиксируются ваши решения.</p>
+</div>
+<div class="log" id="logList">
+<div class="log-item">Пока пусто. Нажми «Начать смену», чтобы начать работу.</div>
+</div>
+</aside>
+</section>
+<section class="mode-section instructia-section fade-in" id="mode-instructia" style="display:none;">
+<div class="panel game-card t73-v152-guide-panel">
+<div class="t73-v152-guide-hero">
+<div>
+<span class="badge">📖 Инструкция Cherepovets 89</span>
+<h2>Рабочий справочник модерации Discord</h2>
+<p>Удобная внутренняя версия инструкции: быстрый поиск по разделам, карточки действий, понятные критерии наказаний и отдельные блоки для отчётов, жалоб, организаций и магазинов.</p>
+</div>
+<div class="t73-v152-guide-actions">
+<button class="btn btn-secondary" id="instructiaBackBtn" type="button">← Назад</button>
+<button class="btn btn-primary" id="t73GuideTopBtn" type="button">Наверх</button>
+</div>
+</div>
+<div class="t73-v152-guide-toolbar">
+<input class="support-input" id="t73GuideSearch" placeholder="Быстрый поиск: мут, бан, отчёт, жалоба, реклама, ГОСС..." type="search"/>
+<div aria-label="Разделы инструкции" class="t73-v152-guide-tabs">
+<button data-guide-jump="guide-fast" type="button">Быстрый старт</button>
+<button data-guide-jump="guide-verdicts" type="button">Вердикты</button>
+<button data-guide-jump="guide-reports" type="button">Отчёты</button>
+<button data-guide-jump="guide-orgs" type="button">Организации</button>
+<button data-guide-jump="guide-checklist" type="button">Чек‑лист</button>
+<button data-guide-jump="guide-ai-chat" type="button">AI‑чат</button>
+</div>
+</div>
+<article aria-label="AI чат по правилам модерации" class="t73-ai-chat-card" id="guide-ai-chat">
+<div class="t73-ai-chat-head">
+<div>
+<span class="t73-ai-chat-kicker">AI-помощник</span>
+<h3>Чат с ИИ по правилам модерации</h3>
+<p>Пиши ситуацию своими словами — помощник подберёт пункт правил, наказание и объяснит логику решения.</p>
+</div>
+<span class="t73-ai-chat-model" style="display:none"></span>
+</div>
+<div aria-label="Быстрые вопросы" class="t73-ai-chat-examples">
+<button data-ai-example="Игрок рекламирует другой Discord сервер. Что выдать?" type="button">Реклама</button>
+<button data-ai-example="Пользователь многократно тегает другого человека без текста. Какое наказание?" type="button">Много тегов</button>
+<button data-ai-example="Игрок спорит про политику в общем чате. Как действовать?" type="button">Политика</button>
+<button data-ai-example="Модератор хочет снять наказание другого модератора. Можно?" type="button">Правила модераторов</button>
+</div>
+<div aria-live="polite" class="t73-ai-chat-messages" id="t73AiChatMessages" role="log">
+<div class="t73-ai-msg bot"><b>AI помощник:</b><br/>Задай вопрос по правилам модерации. Я отвечу кратко: пункт, нарушение, наказание и что проверить перед выдачей.</div>
+</div>
+<div class="t73-ai-chat-input-row">
+<textarea class="support-input" id="t73AiChatInput" placeholder="Например: игрок написал ссылку на сторонний проект и зовёт туда людей. Что выдавать?" rows="3"></textarea>
+<div class="t73-ai-chat-actions">
+<button class="btn btn-primary" id="t73AiChatSendBtn" type="button">Отправить</button>
+<button class="btn btn-secondary" id="t73AiChatClearBtn" type="button">Очистить</button>
+</div>
+</div>
+<div class="t73-ai-chat-status" id="t73AiChatStatus">Ключ берётся из панели управления. Модераторам его вводить не нужно.</div>
+</article>
+<div class="t73-v152-guide-layout">
+<aside class="t73-v152-guide-index">
+<strong>Навигация</strong>
+<a href="#guide-fast">1. Быстрый старт</a>
+<a href="#guide-principles">2. Принципы модерации</a>
+<a href="#guide-verdicts">3. Вердикты и наказания</a>
+<a href="#guide-violations">4. Типовые нарушения</a>
+<a href="#guide-complaints">5. Жалобы и спорные случаи</a>
+<a href="#guide-reports">6. Отчётность</a>
+<a href="#guide-orgs">7. Организации / ГОСС</a>
+<a href="#guide-shop">8. Магазины и логи</a>
+<a href="#guide-checklist">9. Чек‑лист перед решением</a>
+<a href="#guide-ai-chat">10. AI‑чат по правилам</a>
+</aside>
+<div class="t73-v152-guide-content">
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-fast">
+<div class="t73-v152-block-head"><span>⚡</span><div><h3>1. Быстрый старт</h3><p>Как действовать в любой ситуации без лишнего поиска.</p></div></div>
+<div class="t73-v152-steps">
+<div><b>1</b><span>Прочитай сообщение полностью, не вырывай фразу из контекста.</span></div>
+<div><b>2</b><span>Определи категорию: обычный вопрос, флуд, токсичность, реклама, угроза, обход наказания или спорная ситуация.</span></div>
+<div><b>3</b><span>Выбери минимально достаточное действие: без нарушения, предупреждение, мут, бан или передача старшему составу.</span></div>
+<div><b>4</b><span>Если есть сомнения — фиксируй доказательства и передавай на проверку, а не наказывай «на всякий случай».</span></div>
+</div>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-principles">
+<div class="t73-v152-block-head"><span>🧭</span><div><h3>2. Основные принципы модерации</h3><p>Модератор должен быть спокойным, последовательным и опираться на факты.</p></div></div>
+<div class="t73-v152-grid-two">
+<div class="t73-v152-mini"><h4>Работай по фактам</h4><p>Оценивай конкретное сообщение, доказательство, ссылку, скриншот или повторяемость поведения.</p></div>
+<div class="t73-v152-mini"><h4>Не спорь с игроком</h4><p>Ответ должен быть коротким и нейтральным. Если игрок продолжает конфликт — фиксируй и применяй регламент.</p></div>
+<div class="t73-v152-mini"><h4>Не завышай наказание</h4><p>Наказание должно соответствовать тяжести нарушения. За мелкий флуд не нужен бан, за рекламу нельзя ограничиться устным замечанием.</p></div>
+<div class="t73-v152-mini"><h4>Сохраняй доказательства</h4><p>Для спорных решений нужны скриншоты, ссылки, ID сообщений, время и описание ситуации.</p></div>
+</div>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-verdicts">
+<div class="t73-v152-block-head"><span>⚖️</span><div><h3>3. Вердикты и наказания</h3><p>Короткая таблица: когда выбирать каждый вариант.</p></div></div>
+<div class="t73-v152-verdicts">
+<div class="ok"><b>Без нарушения</b><span>Обычный вопрос, нейтральное общение, нет вреда чату, нет запрещённых тем.</span></div>
+<div class="soft"><b>Устное / предупреждение</b><span>Мелкое отклонение, первая ошибка, лёгкий флуд, незначительная провокация без тяжёлых последствий.</span></div>
+<div class="warn"><b>Мут</b><span>Флуд, капс, токсичность, оскорбления, провокации, повтор после предупреждения, мешающее общение.</span></div>
+<div class="ban"><b>Бан</b><span>Реклама, вредоносные ссылки, продажа аккаунтов/валюты за реальные деньги, угрозы, слив личных данных, обход наказания.</span></div>
+<div class="hard"><b>Передать старшим</b><span>Недостаточно доказательств, неоднозначный контекст, конфликт между сотрудниками, сложная жалоба или технический сбой.</span></div>
+</div>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-violations">
+<div class="t73-v152-block-head"><span>🚫</span><div><h3>4. Типовые нарушения</h3><p>Основные категории, которые чаще всего встречаются в чате и жалобах.</p></div></div>
+<div class="t73-v152-grid-three">
+<div class="t73-v152-mini"><h4>Флуд / спам</h4><p>Повторы, бессмысленные сообщения, массовые символы, навязчивые призывы, засорение канала.</p></div>
+<div class="t73-v152-mini"><h4>Капс</h4><p>Сообщения, написанные преимущественно большими буквами, если они мешают общению или повторяются.</p></div>
+<div class="t73-v152-mini"><h4>Оскорбления</h4><p>Переход на личности, грубость, токсичные формулировки, провокация конфликта.</p></div>
+<div class="t73-v152-mini"><h4>Реклама</h4><p>Ссылки или призывы перейти на сторонние проекты, серверы, каналы, магазины, группы.</p></div>
+<div class="t73-v152-mini"><h4>Продажа / покупка</h4><p>Аккаунты, валюта, имущество, услуги за реальные деньги или обход игровых правил.</p></div>
+<div class="t73-v152-mini"><h4>Угрозы и слив данных</h4><p>Угрозы игрокам, публикация личных данных, намёки на деанон, вредоносные ссылки.</p></div>
+<div class="t73-v152-mini"><h4>Политика / запрещённые темы</h4><p>Темы, провоцирующие конфликты и не относящиеся к игровому процессу или серверу.</p></div>
+<div class="t73-v152-mini"><h4>Обход наказаний</h4><p>Попытки писать с другого аккаунта, обходить мут, провоцировать обход или помогать обходить ограничения.</p></div>
+<div class="t73-v152-mini"><h4>Спорный контекст</h4><p>Шутка, цитата, RP‑сцена или ответ на провокацию — сначала проверь контекст, потом выбирай действие.</p></div>
+</div>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-complaints">
+<div class="t73-v152-block-head"><span>📂</span><div><h3>5. Жалобы и спорные случаи</h3><p>Разбор жалобы должен быть понятным и проверяемым.</p></div></div>
+<ul class="t73-v152-list">
+<li>Проверь, есть ли доказательства: скриншот, ссылка, дата, время, ID сообщения или понятное описание.</li>
+<li>Не принимай решение только по словам заявителя, если нет подтверждения.</li>
+<li>Если нарушение очевидное — укажи вердикт и причину коротко.</li>
+<li>Если доказательств недостаточно — запроси уточнение или передай старшему составу.</li>
+<li>Не раскрывай лишнюю внутреннюю информацию игрокам.</li>
+</ul>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-reports">
+<div class="t73-v152-block-head"><span>🧾</span><div><h3>6. Отчётность</h3><p>Отчёт должен быть читаемым: кто сдал, что сделал, когда и чем подтверждается.</p></div></div>
+<div class="t73-v152-grid-two">
+<div class="t73-v152-mini"><h4>Что указывать</h4><p>Ник, дату, тип работы, объём выполненного, комментарий и доказательства при необходимости.</p></div>
+<div class="t73-v152-mini"><h4>Доказательства</h4><p>Ссылки на скриншоты или прямые вложения. Если доказательств нет — отчёт может быть отклонён.</p></div>
+<div class="t73-v152-mini"><h4>Проверка</h4><p>Руководство смотрит корректность данных, повторяемость, соответствие норме и качество работы.</p></div>
+<div class="t73-v152-mini"><h4>Отказ</h4><p>Неполные данные, неверная дата, отсутствие доказательств, нечитаемые скрины или очевидная ошибка в отчёте.</p></div>
+</div>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-orgs">
+<div class="t73-v152-block-head"><span>🏢</span><div><h3>7. Организации / ГОСС</h3><p>В разделе организаций важны права доступа, корректный выбор организации и аккуратная работа с отчётами.</p></div></div>
+<div class="t73-v152-org-list">
+<span>🏛️ Правительство</span><span>🛡️ ФСБ</span><span>🚔 ГИБДД</span><span>👮 УМВД</span><span>🎖️ Армия</span><span>🏥 Больница</span><span>🎙️ СМИ</span><span>🔒 ФСИН</span>
+</div>
+<ul class="t73-v152-list">
+<li>Сначала выбери нужную организацию, затем внутренний подраздел: тренажёр, мои данные, состав, отчётность, сдача отчёта, неактив, магазин или панель руководства.</li>
+<li>Обычный доступ видит тренажёр. Старший состав получает личные данные, сдачу отчётов, неактив и магазин. Руководство получает состав, проверку отчётов и управление.</li>
+<li>При сдаче ГОСС отчёта прикрепляй скриншоты или ссылку, чтобы руководство могло проверить работу.</li>
+<li>При переключении между подразделами старый экран теперь сразу заменяется индикатором загрузки, чтобы не было ощущения зависания.</li>
+</ul>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-shop">
+<div class="t73-v152-block-head"><span>🛒</span><div><h3>8. Магазины, покупки и логи</h3><p>Покупки должны попадать в журнал, а выдача — подтверждаться ответственным сотрудником.</p></div></div>
+<div class="t73-v152-grid-two">
+<div class="t73-v152-mini"><h4>Магазин модерации</h4><p>Использует XP и внутриигровые бонусы. После покупки действие фиксируется в логах.</p></div>
+<div class="t73-v152-mini"><h4>Магазин АП</h4><p>Работает с баллами агентов поддержки и отдельными логами АП.</p></div>
+<div class="t73-v152-mini"><h4>Магазин ГОСС</h4><p>Привязан к выбранной организации. Покупки пишутся в логи конкретной организации.</p></div>
+<div class="t73-v152-mini"><h4>Логи выдач</h4><p>Если покупка требует ручной выдачи, после выполнения её нужно отметить в журнале.</p></div>
+</div>
+</article>
+<article class="t73-v152-guide-block" data-guide-card="" id="guide-checklist">
+<div class="t73-v152-block-head"><span>✅</span><div><h3>9. Чек‑лист перед решением</h3><p>Используй перед мутом, баном, отклонением отчёта или спорным вердиктом.</p></div></div>
+<div class="t73-v152-checks">
+<label><input type="checkbox"/> Я прочитал сообщение/жалобу полностью.</label>
+<label><input type="checkbox"/> Я понял контекст, а не только одну фразу.</label>
+<label><input type="checkbox"/> Я выбрал минимально достаточное наказание.</label>
+<label><input type="checkbox"/> У меня есть доказательства или понятное основание.</label>
+<label><input type="checkbox"/> Если случай спорный — я передам его старшему составу.</label>
+</div>
+<div class="t73-v152-note"><strong>Важно:</strong> лучше потратить несколько секунд на проверку, чем выдать неверное наказание и потом разбирать апелляцию.</div>
+</article>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- === T73 V53: точечный фикс ГОСС без переименования режимов === -->
+<!-- === /T73 V53 === -->
+<!-- === T73 V54 MOBILE LAYOUT FIX === -->
+<!-- === /T73 V54 MOBILE LAYOUT FIX === -->
+<!-- === /T73 V55 === -->
+<!-- === T73 V56: чистим лишние вкладки модерации + перенос проверки отчетности вниз === -->
+<!-- === /T73 V56 === -->
+<!-- === T73 V57: фикс прямой загрузки скриншотов в отчетности модерации === -->
+<!-- === /T73 V57 === -->
+<!-- === T73 V58 MOD TRAINER DISCORD RULES + ANSWERS + DIALOGS === -->
+<!-- === /T73 V58 === -->
+<!-- === T73 V59: фикс прыгающей кнопки проверки отчетности === -->
+<!-- === /T73 V59 === -->
+<!-- === T73 V62: фикс сдачи отчёта, когда вход есть, но кнопка пишет «Сначала войдите» === -->
+<!-- === /T73 V62 === -->
+<!-- === T73 V63: переписанный блок проверки отчётности + нормальный лог === -->
+<!-- === /T73 V63 === -->
+<!-- === T73 V64: возвращаем удобную сетку отчётов по 2 в строке === -->
+<!-- === /T73 V64 === -->
+<!-- === T73 V65: реальные XP за проверенные отчёты === -->
+<!-- === /T73 V65 === -->
+<!-- === T73 V66: staff punishments for moderation leadership + daily active-punishment notice === -->
+<!-- === /T73 V66 === -->
+<!-- === T73 V67: ГОСС таблица наказаний (строгие / выговоры / предупреждения) === -->
+<!-- === /T73 V67 === -->
+<!-- === T73 V68: логи ГОСС только внутри выбранной организации, не в общем списке === -->
+<!-- === /T73 V68 === -->
+<!-- === T73 V74: music selector — real mandela/montagem phonk + relax === -->
+<!-- === /T73 V74 === -->
+<!-- === T73 V94: moderation reports/inactives/access/support final patch === -->
+<!-- === /T73 V94 === -->
+<!-- === T73 V103: чистая логика ГОСС-переключения без системы подрежимов === -->
+<!-- === /T73 V103 === -->
+<!-- === T73 V105: рабочая кнопка изменения XP + сохранение реального/игрового XP === -->
+<!-- === /T73 V105 === -->
+<!-- === T73 V106: game result close + weekly movie quizzes === -->
+<!-- === /T73 V106 === -->
+<!-- === T73 V111: restore v106 org layout + report table + mobile scroll cleanup === -->
+<!-- === /T73 V111 === -->
+<!-- === T73 V113: user kind registration + forced profile completion === -->
+<!-- === /T73 V113 === -->
+<!-- === T73 V121: one real upload button + expandable screenshot galleries === -->
+<!-- === /T73 V121 === -->
+<!-- === T73 V122: photo zoom restored + proof links clickable === -->
+<!-- === /T73 V122 === -->
+<!-- === T73 V124: ORG non-photo proof links clickable === -->
+<!-- === /T73 V124 === -->
+<!-- === T73 V126: ГОСС неактив СС, форма для руководства, стабильные режимы === -->
+<!-- === /T73 V126 === -->
+<!-- === T73 V127 CLEAN: removed duplicate/disabled conflict layers; kept working features, animations, org reports, proof zoom/links, and SS inactive === -->
+<!-- === T73 V129: нормальная система XP отчётов + перерасчёт старых начислений === -->
+<!-- === /T73 V129 patched by V130 === -->
+<!-- === T73 V130: безопасный вход + защита от Load failed === -->
+<!-- === /T73 V130 === -->
+<!-- === T73 V131: отдельная кнопка загрузки фото + кто проверил + запрет XP между руководством === -->
+<!-- === /T73 V131 === -->
+<!-- === T73 V132: скрыть проверку отчетов от обычных модераторов === -->
+<!-- === /T73 V132 === -->
+<!-- === T73 V133: игровые XP только для развлечений, модераторские товары только за реальные XP === -->
+<!-- === /T73 V133 === -->
+<!-- === T73 VISUAL UPGRADE v2 === -->
+<!-- === /T73 VISUAL UPGRADE v2 === -->
+<!-- === T73 V146: полная пересборка раздела ГОСС/Организации === -->
+<!-- === /T73 V146 === -->
+<!-- === T73 V148: стабильное меню ГОСС без прыжков === -->
+<!-- === /T73 V148 === -->
+<!-- === T73 V151 removed in v163 ===
+Причина: блок перехватывал клики по магазинам и мог оставлять бесконечную карточку
+«Загружаю магазин…». Инструкция обслуживается отдельными блоками V155/V162.
+=== /T73 V151 removed === -->
+<!-- === T73 V152: fast org transitions + comfortable native instruction === -->
+<!-- t73-v152-org-fast-guide-script removed in v153: replaced by smooth non-jumpy router -->
+<!-- === /T73 V152 === -->
+<!-- === T73 V153: smooth organizations + moderation-like org reports table === -->
+<!-- === /T73 V153 === -->
+<!-- === CH89 STABLE REPORT REVIEW: AI verdict only, leadership grants XP manually === -->
+<!-- === /CH89 STABLE REPORT REVIEW === -->
+<!-- === T73 V155: clearer Gemini key UI + static non-jumpy instruction === -->
+<!-- === /T73 V155 === -->
+<!-- === T73 V156: Gemini key moved to creator panel, removed from moderator report form === -->
+<!-- === /T73 V156 === -->
+<!-- === T73 V157: robust creator Gemini API input/paste fix === -->
+<!-- === /T73 V157 === -->
+<!-- === T73 V158: fix direct photo upload for Gemini auto-check === -->
+<!-- === /T73 V158 === -->
+<!-- === T73 V164: mobile layout + reliable instruction overlay/navigation === -->
+<!-- === /T73 V164 === -->
+<!-- === T73 V163: remove accidental shop loader from moderation/shop === -->
+<!-- === /T73 V163 === -->
+<!-- === T73 V165: stable GOCC leadership report review, no grey infinite loader === -->
+<!-- === /T73 V165 === -->
+<!-- === T73 V167: DeepSeek key for instruction AI chat === -->
+<!-- === /T73 V167 DeepSeek config === -->
+<!-- === T73 V169: pretty clean AI chat answers inside Instruction with DeepSeek === -->
+<!-- === /T73 V169 === -->
+<!-- === CHEREPOVETS 89 FINAL SAFE PATCH: keep original handlers, only hide extra UI and stabilize animations === -->
+<!-- === /CHEREPOVETS 89 FINAL SAFE PATCH === -->
+<!-- === CH89 ENTRY AUTH GATE SCRIPT === -->
+<!-- === /CH89 ENTRY AUTH GATE SCRIPT === -->
+<!-- === CH89 V170: hidden model names + editable instruction === -->
+<!-- === /CH89 V170 editable instruction === -->
+<!-- === CH89 V171: separate AI APIs + panel instruction editor === -->
+<!-- === /CH89 V171 separate AI APIs + panel instruction editor === -->
+<!-- === CH89 V173: creator-only editors hardening === -->
+<!-- === /CH89 V173 creator-only editors hardening === -->
+<!-- === CH89 V173: leader-only single report-review button runtime === -->
+<!-- === /CH89 V173 === -->
+<!-- === CH89 V175: repaired report/table access + visible direct photo upload === -->
+<!-- === /CH89 V174 === -->
+<!-- === CH89 V179: moderation actions AI review + stay in report review === -->
+<!-- === /CH89 V179 === -->
+<!-- === CH89 V180: группировка отчётности по датам + ссылка только как необязательное дополнение === -->
+<!-- === /CH89 V180 === -->
+<!-- === CH89 LEGACY RESTORE V6: no-freeze auth watchdog, no observers === -->
+<!-- === /CH89 LEGACY RESTORE V6 === -->
+<!-- === CH89 LEGACY RESTORE V7: stable UI/no twitch patch === -->
+<!-- === /CH89 LEGACY RESTORE V7 === -->
+<script defer="" src="./assets/js/app.js"></script></body>
+</html>
