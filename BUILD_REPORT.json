@@ -1,0 +1,14 @@
+{
+  "index_bytes": 260118,
+  "css_bytes": 180782,
+  "js_bytes": 1613593,
+  "has_organizations_button": false,
+  "has_subnav_organizations": false,
+  "has_visible_org_html": false,
+  "cloudflare_present": false,
+  "previous_safe_patch_present": false,
+  "support_present": true,
+  "instruction_present": true,
+  "node_check_ok": true,
+  "node_check_stderr": ""
+}
