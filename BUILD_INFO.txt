@@ -1,5 +1,0 @@
-Generated from: index(1).html
-Styles extracted: 52
-Scripts extracted: 65
-Favicon extracted: True
-Cloudflare beacon scripts removed: 4
