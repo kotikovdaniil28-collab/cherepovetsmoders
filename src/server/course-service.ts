@@ -415,6 +415,7 @@ export async function getPortfolio(slug: string): Promise<Portfolio | undefined>
     slug,
     bio: "Тренирую Discord-модерацию: доказательства, правила, наказания и отчёты.",
     githubUrl: "https://vk.com/cherepovets89",
+    linkedinUrl: undefined,
     projects: mockSubmissions
       .filter((submission) => submission.status === "approved")
       .map((submission) => ({
