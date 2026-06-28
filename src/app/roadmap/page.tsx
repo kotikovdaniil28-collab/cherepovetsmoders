@@ -2,6 +2,8 @@ import { AppShell } from "@/components/AppShell";
 import { ModuleCard } from "@/features/courses/ModuleCard";
 import { getCourseModules } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function RoadmapPage() {
   const courseModules = await getCourseModules();
 

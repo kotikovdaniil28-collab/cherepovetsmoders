@@ -9,6 +9,8 @@ import {
   getSubmissions
 } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const courseModules = await getCourseModules();
   const progress = calculateOverallProgress(courseModules);

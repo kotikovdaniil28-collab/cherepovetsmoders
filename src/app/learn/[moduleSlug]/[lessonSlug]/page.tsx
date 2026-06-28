@@ -5,6 +5,8 @@ import { Badge } from "@/components/Badge";
 import { ChallengeWorkspace } from "@/components/ChallengeWorkspace";
 import { getLesson, getLessonNavigation } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{
     moduleSlug: string;

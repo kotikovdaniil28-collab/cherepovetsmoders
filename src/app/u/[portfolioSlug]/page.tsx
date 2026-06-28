@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { getPortfolio } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{
     portfolioSlug: string;

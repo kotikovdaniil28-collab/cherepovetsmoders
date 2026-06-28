@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { getTodayPlan } from "@/server/learning-plan";
 
+export const dynamic = "force-dynamic";
+
 export default async function TodayPage() {
   const plan = await getTodayPlan();
 

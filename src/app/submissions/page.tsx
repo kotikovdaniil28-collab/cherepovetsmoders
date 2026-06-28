@@ -4,6 +4,8 @@ import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
 import { getSubmissions } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function SubmissionsPage() {
   const submissions = await getSubmissions();
 

@@ -1,6 +1,8 @@
 import { AppShell } from "@/components/AppShell";
 import { getCourseModules } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const courseModules = await getCourseModules();
   const lessonsCount = courseModules.reduce(

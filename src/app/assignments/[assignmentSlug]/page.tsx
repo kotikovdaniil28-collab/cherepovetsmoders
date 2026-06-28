@@ -4,6 +4,8 @@ import { AssignmentSubmissionForm } from "@/components/AssignmentSubmissionForm"
 import { Badge } from "@/components/Badge";
 import { getAssignment } from "@/server/course-service";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{
     assignmentSlug: string;
