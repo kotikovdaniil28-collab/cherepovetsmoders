@@ -161,22 +161,22 @@ async function main() {
     }
   });
 
-  for (const module of seededModules) {
-    const source = courseModules.find((item) => item.slug === module.slug);
+  for (const courseModule of seededModules) {
+    const source = courseModules.find((item) => item.slug === courseModule.slug);
     const percent = source?.progress ?? 0;
     const status = moduleStatus(source?.status ?? "available");
 
     await prisma.moduleProgress.create({
       data: {
         userId: student.id,
-        moduleId: module.id,
+        moduleId: courseModule.id,
         status,
         percent,
         completedAt: status === ModuleStatus.COMPLETED ? new Date() : null
       }
     });
 
-    for (const lesson of module.lessons) {
+    for (const lesson of courseModule.lessons) {
       const sourceLesson = source?.lessons.find((item) => item.slug === lesson.slug);
       const status = progressStatus(sourceLesson?.status ?? "not_started");
 

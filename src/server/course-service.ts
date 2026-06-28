@@ -53,7 +53,7 @@ type PrismaCourseModule = {
   }>;
 };
 
-function useMockData() {
+function shouldUseMockData() {
   return process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" || !process.env.DATABASE_URL;
 }
 
@@ -151,16 +151,16 @@ function checkResults(value: unknown): AutoCheckResult[] {
   });
 }
 
-function mapModule(module: PrismaCourseModule): CourseModule {
-  const progress = module.moduleProgress[0];
+function mapModule(courseModule: PrismaCourseModule): CourseModule {
+  const progress = courseModule.moduleProgress[0];
 
   return {
-    title: module.title,
-    slug: module.slug,
-    description: module.description,
-    status: mapModuleStatus(progress?.status ?? module.status),
+    title: courseModule.title,
+    slug: courseModule.slug,
+    description: courseModule.description,
+    status: mapModuleStatus(progress?.status ?? courseModule.status),
     progress: progress?.percent ?? 0,
-    lessons: module.lessons.map((lesson) => ({
+    lessons: courseModule.lessons.map((lesson) => ({
       title: lesson.title,
       slug: lesson.slug,
       duration: `${lesson.estimatedMinutes} мин`,
@@ -176,7 +176,7 @@ function mapModule(module: PrismaCourseModule): CourseModule {
           }
         : undefined
     })),
-    assignments: module.assignments.map((assignment) => ({
+    assignments: courseModule.assignments.map((assignment) => ({
       title: assignment.title,
       slug: assignment.slug,
       status: mapAssignmentStatus(assignment.submissions[0]?.status),
@@ -187,7 +187,7 @@ function mapModule(module: PrismaCourseModule): CourseModule {
 }
 
 async function tryDb<T>(query: () => Promise<T>, fallback: T): Promise<T> {
-  if (useMockData()) {
+  if (shouldUseMockData()) {
     return fallback;
   }
 
@@ -251,17 +251,17 @@ export async function getCourseModules(): Promise<CourseModule[]> {
       }
     });
 
-    return modules.map((module) => mapModule(module));
+    return modules.map((courseModule) => mapModule(courseModule));
   }, mockModules);
 }
 
 export async function getLesson(moduleSlug: string, lessonSlug: string) {
   const modules = await getCourseModules();
-  const module = modules.find((item) => item.slug === moduleSlug);
-  const lesson = module?.lessons.find((item) => item.slug === lessonSlug);
+  const courseModule = modules.find((item) => item.slug === moduleSlug);
+  const lesson = courseModule?.lessons.find((item) => item.slug === lessonSlug);
 
-  if (module && lesson) {
-    return { module, lesson };
+  if (courseModule && lesson) {
+    return { module: courseModule, lesson };
   }
 
   return getMockLesson(moduleSlug, lessonSlug);
@@ -270,11 +270,11 @@ export async function getLesson(moduleSlug: string, lessonSlug: string) {
 export async function getAssignment(slug: string) {
   const modules = await getCourseModules();
 
-  for (const module of modules) {
-    const assignment = module.assignments.find((item) => item.slug === slug);
+  for (const courseModule of modules) {
+    const assignment = courseModule.assignments.find((item) => item.slug === slug);
 
     if (assignment) {
-      return { module, assignment };
+      return { module: courseModule, assignment };
     }
   }
 
@@ -284,9 +284,9 @@ export async function getAssignment(slug: string) {
 export async function getNextLesson() {
   const modules = await getCourseModules();
   const next = modules
-    .flatMap((module) =>
-      module.lessons.map((lesson) => ({
-        module,
+    .flatMap((courseModule) =>
+      courseModule.lessons.map((lesson) => ({
+        module: courseModule,
         lesson
       }))
     )
@@ -297,10 +297,10 @@ export async function getNextLesson() {
 
 export async function getLessonNavigation(moduleSlug: string, lessonSlug: string) {
   const modules = await getCourseModules();
-  const flatLessons = modules.flatMap((module) =>
-    module.lessons.map((lesson) => ({
-      moduleSlug: module.slug,
-      moduleTitle: module.title,
+  const flatLessons = modules.flatMap((courseModule) =>
+    courseModule.lessons.map((lesson) => ({
+      moduleSlug: courseModule.slug,
+      moduleTitle: courseModule.title,
       lessonSlug: lesson.slug,
       lessonTitle: lesson.title
     }))

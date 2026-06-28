@@ -331,22 +331,22 @@ export const submissions: Submission[] = [
 ];
 
 export function getModule(slug: string) {
-  return courseModules.find((module) => module.slug === slug);
+  return courseModules.find((courseModule) => courseModule.slug === slug);
 }
 
 export function getLesson(moduleSlug: string, lessonSlug: string) {
-  const module = getModule(moduleSlug);
-  const lesson = module?.lessons.find((item) => item.slug === lessonSlug);
+  const courseModule = getModule(moduleSlug);
+  const lesson = courseModule?.lessons.find((item) => item.slug === lessonSlug);
 
-  return { module, lesson };
+  return { module: courseModule, lesson };
 }
 
 export function getAssignment(slug: string) {
-  for (const module of courseModules) {
-    const assignment = module.assignments.find((item) => item.slug === slug);
+  for (const courseModule of courseModules) {
+    const assignment = courseModule.assignments.find((item) => item.slug === slug);
 
     if (assignment) {
-      return { module, assignment };
+      return { module: courseModule, assignment };
     }
   }
 
@@ -355,9 +355,9 @@ export function getAssignment(slug: string) {
 
 export function getNextLesson() {
   return courseModules
-    .flatMap((module) =>
-      module.lessons.map((lesson) => ({
-        module,
+    .flatMap((courseModule) =>
+      courseModule.lessons.map((lesson) => ({
+        module: courseModule,
         lesson
       }))
     )

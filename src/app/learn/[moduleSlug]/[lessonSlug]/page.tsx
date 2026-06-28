@@ -14,10 +14,10 @@ type PageProps = {
 
 export default async function LessonPage({ params }: PageProps) {
   const { moduleSlug, lessonSlug } = await params;
-  const { module, lesson } = await getLesson(moduleSlug, lessonSlug);
+  const { module: courseModule, lesson } = await getLesson(moduleSlug, lessonSlug);
   const navigation = await getLessonNavigation(moduleSlug, lessonSlug);
 
-  if (!module || !lesson) {
+  if (!courseModule || !lesson) {
     notFound();
   }
 
@@ -29,7 +29,7 @@ export default async function LessonPage({ params }: PageProps) {
             Тренажёр
           </Link>
           <span>/</span>
-          <span>{module.title}</span>
+          <span>{courseModule.title}</span>
         </div>
         <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -57,17 +57,17 @@ export default async function LessonPage({ params }: PageProps) {
           <ChallengeWorkspace
             challenge={lesson.challenge}
             lessonSlug={lesson.slug}
-            moduleSlug={module.slug}
+            moduleSlug={courseModule.slug}
           />
         ) : null}
-        {module.assignments[0] ? (
+        {courseModule.assignments[0] ? (
           <div className="glass-panel mt-6 rounded-lg p-5">
             <p className="text-sm text-muted">
               Когда закончишь кейсы модуля, переходи к итоговому заданию.
             </p>
             <Link
               className="mt-4 inline-flex rounded-md border border-line px-4 py-2 text-sm font-medium transition hover:bg-white/10"
-              href={`/assignments/${module.assignments[0].slug}`}
+              href={`/assignments/${courseModule.assignments[0].slug}`}
             >
               Открыть задание модуля
             </Link>

@@ -1,7 +1,7 @@
 import type { CourseModule } from "@/lib/types";
 
 export function calculateOverallProgress(modules: CourseModule[]) {
-  const lessons = modules.flatMap((module) => module.lessons);
+  const lessons = modules.flatMap((courseModule) => courseModule.lessons);
 
   if (lessons.length === 0) {
     return 0;
@@ -26,4 +26,3 @@ export function statusLabel(status: string) {
 
   return labels[status] ?? status;
 }
-

@@ -12,9 +12,9 @@ type PageProps = {
 
 export default async function AssignmentPage({ params }: PageProps) {
   const { assignmentSlug } = await params;
-  const { module, assignment } = await getAssignment(assignmentSlug);
+  const { module: courseModule, assignment } = await getAssignment(assignmentSlug);
 
-  if (!module || !assignment) {
+  if (!courseModule || !assignment) {
     notFound();
   }
 
@@ -24,7 +24,7 @@ export default async function AssignmentPage({ params }: PageProps) {
         <section className="glass-panel rounded-lg p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-brand">{module.title}</p>
+              <p className="text-sm font-medium text-brand">{courseModule.title}</p>
               <h1 className="mt-2 text-3xl font-black">{assignment.title}</h1>
               <p className="mt-3 text-muted">{assignment.summary}</p>
             </div>

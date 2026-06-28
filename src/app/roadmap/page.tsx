@@ -20,8 +20,8 @@ export default async function RoadmapPage() {
         </div>
       </div>
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        {courseModules.map((module) => (
-          <ModuleCard key={module.slug} module={module} />
+        {courseModules.map((courseModule) => (
+          <ModuleCard key={courseModule.slug} module={courseModule} />
         ))}
       </div>
     </AppShell>

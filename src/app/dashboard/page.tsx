@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const approvedSubmissions = submissions.filter(
     (submission) => submission.status === "approved"
   );
-  const lessons = courseModules.flatMap((module) => module.lessons);
+  const lessons = courseModules.flatMap((courseModule) => courseModule.lessons);
   const completedLessons = lessons.filter(
     (lesson) => lesson.status === "completed"
   );

@@ -4,11 +4,11 @@ import { getCourseModules } from "@/server/course-service";
 export default async function AdminPage() {
   const courseModules = await getCourseModules();
   const lessonsCount = courseModules.reduce(
-    (total, module) => total + module.lessons.length,
+    (total, courseModule) => total + courseModule.lessons.length,
     0
   );
   const assignmentsCount = courseModules.reduce(
-    (total, module) => total + module.assignments.length,
+    (total, courseModule) => total + courseModule.assignments.length,
     0
   );
 

@@ -26,19 +26,19 @@ export async function getTodayPlan(): Promise<TodayPlan> {
   ]);
 
   const nextLesson = modules
-    .flatMap((module) =>
-      module.lessons.map((lesson) => ({
-        moduleSlug: module.slug,
-        moduleTitle: module.title,
+    .flatMap((courseModule) =>
+      courseModule.lessons.map((lesson) => ({
+        moduleSlug: courseModule.slug,
+        moduleTitle: courseModule.title,
         lesson
       }))
     )
     .find((item) => item.lesson.status !== "completed");
 
   const nextAssignment = modules
-    .flatMap((module) =>
-      module.assignments.map((assignment) => ({
-        moduleTitle: module.title,
+    .flatMap((courseModule) =>
+      courseModule.assignments.map((assignment) => ({
+        moduleTitle: courseModule.title,
         assignment
       }))
     )
@@ -64,4 +64,3 @@ export async function getTodayPlan(): Promise<TodayPlan> {
     completedToday
   };
 }
-
