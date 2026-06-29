@@ -1,51 +1,9 @@
-# CHEREPOVETS 89 — full functional redesign v35
+# CHEREPOVETS Moderation v38
 
-Это сборка от старого рабочего сайта, а не Next-тренажёр.
+Чистая статическая сборка под модерацию.
 
-Сохранены основные функции старой версии:
+Сохранено: отчёты, неактивы, жалобы, тренажёр, магазин модерации, лидерборд модерации, профиль, игровой XP, реальный XP, таблица отчётов, руководство модерации, логи и панель создателя.
 
-- Supabase Auth и профиль пользователя;
-- сдача отчётов;
-- подача неактивов;
-- таблица отчётов;
-- руководство модерации;
-- руководство АП;
-- панель создателя;
-- логи;
-- магазины;
-- лидерборд;
-- игровой XP;
-- реальный XP;
-- баллы АП;
-- разделы общего доступа и служебные панели.
+Удалено из интерфейса: поддержка, АП, организации, ГОСС/ФСБ-разделы и связанные кнопки. Также отключена динамическая генерация ГОСС/ФСБ-разделов старым JS.
 
-Дизайн вынесен в отдельный CSS-файл:
-
-```text
-assets/cherepovets-redesign-v35.css
-public/assets/cherepovets-redesign-v35.css
-```
-
-Рабочий JavaScript старого сайта не переписывался.
-
-## Supabase
-
-В файле `supabase.config.js` укажите URL проекта и publishable/anon key:
-
-```js
-window.CH89_SUPABASE_URL = 'https://your-project.supabase.co';
-window.CH89_SUPABASE_ANON_KEY = 'your-publishable-or-anon-key';
-```
-
-В Supabase Dashboard включите `Authentication -> Providers -> Email`.
-
-## Как заливать
-
-Лучший вариант: очистить репозиторий и залить содержимое этого архива целиком.
-Не докидывать поверх Next-версии, иначе в репозитории могут остаться старые `package.json`, `.next`, `src/`, Vite/Next-настройки.
-
-На Vercel желательно выставить:
-
-- Framework Preset: Other
-- Build Command: пусто
-- Output Directory: пусто или `public`, если проект уже так настроен
+Vercel: Framework Preset = Other, Build Command пустой, Output Directory пустой или public.
