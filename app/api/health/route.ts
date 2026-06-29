@@ -7,6 +7,6 @@ export function GET() {
   return NextResponse.json({
     ok: true,
     service: "cherepovets-moderation-next",
-    version: "48.0.0"
+    version: "49.0.0"
   });
 }

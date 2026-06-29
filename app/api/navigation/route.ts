@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const pages = [
+  { path: "/native", title: "Native главная", mode: "native_home", group: "next" },
   { path: "/native/profile", title: "Native профиль", mode: "native_profile", group: "next" },
   { path: "/native/inactives", title: "Native неактивы", mode: "native_inactives", group: "next" },
   { path: "/native/reports", title: "Native отчёты", mode: "native_reports", group: "next" },
@@ -25,7 +26,7 @@ export function GET() {
   return NextResponse.json({
     ok: true,
     service: "cherepovets-moderation-next",
-    version: "48.0.0",
+    version: "49.0.0",
     pages
   });
 }

@@ -61,7 +61,7 @@ declare global {
     CH89_SUPABASE_URL?: string;
     CH89_SUPABASE_ANON_KEY?: string;
     supabase?: {
-      createClient(url: string, key: string): SupabaseLike;
+      createClient(url: string, key: string): unknown;
     };
   }
 }
@@ -125,7 +125,7 @@ async function createClient() {
   const key = window.CH89_SUPABASE_ANON_KEY;
   if (!url || !key || !window.supabase) throw new Error("Supabase config не загрузился");
 
-  return window.supabase.createClient(url, key);
+  return window.supabase.createClient(url, key) as SupabaseLike;
 }
 
 function readName(user: SupabaseUser | null, stats: UserStats | null) {
