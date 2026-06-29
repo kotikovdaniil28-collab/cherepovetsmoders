@@ -1,0 +1,288 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ModuleStatus {
+  LOCKED
+  AVAILABLE
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum AssignmentStatus {
+  NOT_STARTED
+  SUBMITTED
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String?
+  role            Role             @default(STUDENT)
+  avatarUrl       String?
+  profile         Profile?
+  lessonProgress  LessonProgress[]
+  moduleProgress  ModuleProgress[]
+  submissions     Submission[]
+  projects        Project[]
+  skillProgress   UserSkillProgress[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String
+  bio             String?
+  githubUrl       String?
+  linkedinUrl     String?
+  portfolioSlug   String   @unique
+  isPublic        Boolean  @default(false)
+  weeklyGoalHours Int?
+  experienceLevel String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Course {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  level       String
+  status      PublishStatus @default(DRAFT)
+  modules     Module[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Module {
+  id             String           @id @default(cuid())
+  courseId       String
+  course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title          String
+  slug           String
+  description    String
+  order          Int
+  status         ModuleStatus     @default(AVAILABLE)
+  estimatedHours Int?
+  lessons        Lesson[]
+  assignments    Assignment[]
+  moduleProgress ModuleProgress[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([courseId, slug])
+  @@index([courseId, order])
+}
+
+model Lesson {
+  id             String           @id @default(cuid())
+  moduleId       String
+  module         Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title          String
+  slug           String
+  summary        String
+  contentJson    Json
+  order          Int
+  estimatedMinutes Int
+  status         PublishStatus    @default(DRAFT)
+  assignments    Assignment[]
+  lessonProgress LessonProgress[]
+  challenge      Challenge?
+  skills         LessonSkill[]
+  resources      Resource[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([moduleId, slug])
+  @@index([moduleId, order])
+}
+
+model Challenge {
+  id               String   @id @default(cuid())
+  lessonId         String   @unique
+  lesson           Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title            String
+  instructionsJson Json
+  seedCode         String
+  testRulesJson    Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Assignment {
+  id                         String             @id @default(cuid())
+  moduleId                   String
+  module                     Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lessonId                   String?
+  lesson                     Lesson?            @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  title                      String
+  slug                       String             @unique
+  summary                    String
+  descriptionMarkdown        String
+  acceptanceCriteriaJson     Json
+  order                      Int
+  requiredGithubUrl          Boolean            @default(true)
+  requiredDeployUrl          Boolean            @default(false)
+  autoChecksJson             Json?
+  status                     PublishStatus      @default(DRAFT)
+  submissions                Submission[]
+  projects                   Project[]
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
+
+  @@index([moduleId, order])
+}
+
+model LessonProgress {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      ProgressStatus @default(NOT_STARTED)
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+model ModuleProgress {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId    String
+  module      Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  status      ModuleStatus @default(AVAILABLE)
+  percent     Int          @default(0)
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([userId, moduleId])
+}
+
+model Submission {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignmentId  String
+  assignment    Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  githubUrl     String
+  deployUrl     String?
+  comment       String?
+  status        AssignmentStatus @default(SUBMITTED)
+  attemptNumber Int              @default(1)
+  checks        SubmissionCheck[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([userId, assignmentId])
+  @@index([status])
+}
+
+model SubmissionCheck {
+  id            String           @id @default(cuid())
+  submissionId  String
+  submission    Submission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  status        AssignmentStatus
+  summary       String
+  resultsJson   Json
+  createdAt     DateTime         @default(now())
+
+  @@index([submissionId])
+}
+
+model Skill {
+  id          String              @id @default(cuid())
+  title       String
+  slug        String              @unique
+  category    String
+  description String
+  lessons     LessonSkill[]
+  progress    UserSkillProgress[]
+}
+
+model LessonSkill {
+  id       String @id @default(cuid())
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  skillId  String
+  skill    Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, skillId])
+}
+
+model UserSkillProgress {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId       String
+  skill         Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  level         String
+  evidenceCount Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, skillId])
+}
+
+model Project {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignmentId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  title        String
+  description  String
+  githubUrl    String
+  deployUrl    String?
+  imageUrl     String?
+  skillsJson   Json
+  isPublic     Boolean     @default(true)
+  order        Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([userId, order])
+}
+
+model Resource {
+  id          String  @id @default(cuid())
+  title       String
+  url         String
+  type        String
+  description String?
+  lessonId    String?
+  lesson      Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  moduleId    String?
+}
