@@ -19997,6 +19997,7 @@ html[data-site-theme] .badge.xp {
   function hideModesExcept(id){ qa('.game-card[id^="mode-"],section[id^="mode-"]').forEach(sec => { if(sec.id) sec.style.display = sec.id === id ? 'grid' : 'none'; }); }
   function openReportsTable(btn){
     if(!hasModAccess()){ alert('Таблица отчётов доступна только модерации, руководству и создателю.'); return; }
+    window.__T73_V94_ALLOW_TABLE_RENDER = Date.now() + 5000;
     hideModesExcept('mode-reports_table');
     qa('.mode-btn').forEach(b=>b.classList.remove('active'));
     if(btn) btn.classList.add('active');
@@ -20006,6 +20007,10 @@ html[data-site-theme] .badge.xp {
   }
 
   async function loadReportsTableV94(){
+    const sec = $('mode-reports_table');
+    const tableIsVisible = sec && getComputedStyle(sec).display !== 'none';
+    const explicitlyOpened = Date.now() < Number(window.__T73_V94_ALLOW_TABLE_RENDER || 0);
+    if(!tableIsVisible && !explicitlyOpened) return;
     const wrap = tableShell(); if(!wrap) return;
     const client = supaClient();
     if(!client){ wrap.innerHTML = '<div class="t73-v94-review-card" style="color:var(--color-error);">Supabase ещё не загрузился. Открой таблицу ещё раз через пару секунд.</div>'; return; }
@@ -21605,8 +21610,9 @@ html[data-site-theme] .badge.xp {
       if (area) { area.style.display = 'none'; area.dataset.t73v94Open = '0'; }
       var btn = $('viewReportsBtn');
       if (btn) setTimeout(function(){ btn.click(); }, 80);
-      if (typeof loadReportsTable === 'function') setTimeout(function(){ try { loadReportsTable(); } catch(e){} }, 250);
-      if (typeof loadReportsTableV94 === 'function') setTimeout(function(){ try { loadReportsTableV94(); } catch(e){} }, 320);
+      var reportTable = $('mode-reports_table');
+      if (reportTable && getComputedStyle(reportTable).display !== 'none' && typeof loadReportsTable === 'function') setTimeout(function(){ try { loadReportsTable(); } catch(e){} }, 250);
+      if (reportTable && getComputedStyle(reportTable).display !== 'none' && typeof loadReportsTableV94 === 'function') setTimeout(function(){ try { loadReportsTableV94(); } catch(e){} }, 320);
     } catch(err) {
       alert('Ошибка проверки отчёта: ' + ((err && err.message) || err));
     }
@@ -21829,8 +21835,14 @@ html[data-site-theme] .badge.xp {
     try { if (typeof renderProfileData === 'function') renderProfileData(); } catch(e) {}
     try { if (typeof loadLeaderboard === 'function') loadLeaderboard(); } catch(e) {}
     try { if (typeof loadCreatorPanelData === 'function') loadCreatorPanelData(); } catch(e) {}
-    try { if (window.T73_V94_REPORTS && typeof window.T73_V94_REPORTS.load === 'function') window.T73_V94_REPORTS.load(); } catch(e) {}
-    try { if (window.T73_V44_MOD_TABLE && typeof window.T73_V44_MOD_TABLE.load === 'function') window.T73_V44_MOD_TABLE.load(); } catch(e) {}
+    try {
+      var reportsTable = $('mode-reports_table');
+      if (reportsTable && getComputedStyle(reportsTable).display !== 'none' && window.T73_V94_REPORTS && typeof window.T73_V94_REPORTS.load === 'function') window.T73_V94_REPORTS.load();
+    } catch(e) {}
+    try {
+      var oldModTable = $('mode-mod_table') || $('mode-moderators_table');
+      if (oldModTable && getComputedStyle(oldModTable).display !== 'none' && window.T73_V44_MOD_TABLE && typeof window.T73_V44_MOD_TABLE.load === 'function') window.T73_V44_MOD_TABLE.load();
+    } catch(e) {}
   }
 
   async function recalcAndGrant(options){
@@ -22458,7 +22470,7 @@ html[data-site-theme] .badge.xp {
     p.disabled = true;
     updateReportWithChecker(p.dataset.id, p.dataset.status, Number(p.dataset.xp || 0)).then(function(){
       try { if (window.T73_V63_REPORT_SYNC && typeof window.T73_V63_REPORT_SYNC.render === 'function') window.T73_V63_REPORT_SYNC.render(true); } catch(e) {}
-      try { if (typeof window.loadReportsTable === 'function') setTimeout(function(){ window.loadReportsTable(); }, 300); } catch(e) {}
+      try { var reportTable = $('mode-reports_table'); if (reportTable && getComputedStyle(reportTable).display !== 'none' && typeof window.loadReportsTable === 'function') setTimeout(function(){ window.loadReportsTable(); }, 300); } catch(e) {}
       setTimeout(decorateReportCards, 500);
     }).catch(function(err){
       alert('Ошибка проверки отчёта: ' + (err && err.message ? err.message : err));
@@ -23475,7 +23487,7 @@ html[data-site-theme="creator"] .info-banner     { border-left-color: rgba(255,1
 (function(){
   'use strict';
   if (window.__CH89_STABLE_REPORT_REVIEW__) return;
-  window.__CH89_STABLE_REPORT_REVIEW__ = 'v178-google-gemini-preview';
+  window.__CH89_STABLE_REPORT_REVIEW__ = 'v179-inline-review-no-table-refresh';
 
   var SETTINGS_EMAIL = 'SITE_SETTINGS';
   var REPORTS_KEY = 'ch89_ai_reports_config_v171';
@@ -23988,12 +24000,14 @@ html[data-site-theme="creator"] .info-banner     { border-left-color: rgba(255,1
     var c = client(), u = await authUser();
     if (!c) { alert('База ещё не загрузилась.'); return; }
     if (!(await isLeader())) { alert('Проверять отчёты может только руководство.'); return; }
+    var card = document.querySelector('[data-stable-card="'+CSS.escape(id)+'"]');
+    var controls = card ? qsa('button,select', card) : [];
+    controls.forEach(function(el){ el.disabled = true; el.style.opacity = '.62'; });
     try {
       var got = await c.from('reports').select('*').eq('id', id).maybeSingle();
       if (got.error) throw got.error;
       var row = got.data; if (!row) { alert('Отчёт не найден.'); return; }
       if (u && row.email && String(row.email).toLowerCase() === String(u.email || '').toLowerCase()) { alert('Нельзя проверять свой собственный отчёт.'); return; }
-      var card = document.querySelector('[data-stable-card="'+CSS.escape(id)+'"]');
       var sel = card && card.querySelector('[data-stable-norm]');
       var norm = normClean(sel && sel.value);
       var p = parsePayload(row);
@@ -24008,11 +24022,19 @@ html[data-site-theme="creator"] .info-banner     { border-left-color: rgba(255,1
       }
       var res = await c.from('reports').update(update).eq('id', id);
       if (res.error) throw res.error;
-      var area = $('reportsListArea'); if (area) area.dataset.ch89StableOpen = '0';
-      await renderReview();
-      try { if (typeof window.loadReportsTable === 'function') setTimeout(function(){ window.loadReportsTable(); }, 250); } catch(e) {}
-      try { if (window.T73_V94_REPORTS && typeof window.T73_V94_REPORTS.load === 'function') setTimeout(function(){ window.T73_V94_REPORTS.load(); }, 350); } catch(e) {}
-    } catch(e){ alert('Ошибка сохранения решения: ' + (e && e.message ? e.message : e)); }
+      var updatedRow = Object.assign({}, row, update);
+      if (card && card.parentElement) {
+        var y = window.scrollY;
+        card.outerHTML = cardHtml(updatedRow);
+        requestAnimationFrame(function(){ try { window.scrollTo(0, y); } catch(e){} });
+      }
+      try { if (typeof updateShopStats === 'function') updateShopStats(); } catch(e) {}
+      try { if (typeof updateModStats === 'function') updateModStats(); } catch(e) {}
+      try { if (typeof loadReportXpForCurrentUser === 'function' && user()) window.state.reportXp = await loadReportXpForCurrentUser(); } catch(e) {}
+    } catch(e){
+      controls.forEach(function(el){ el.disabled = false; el.style.opacity = ''; });
+      alert('Ошибка сохранения решения: ' + (e && e.message ? e.message : e));
+    }
   }
   function hideOldReportUi(){
     ['viewReportsBtnV63','viewReportsBtn','govV4CheckReportsBtn','t73V146ReportHint'].forEach(function(id){ var el=$(id); if(el){ el.style.setProperty('display','none','important'); el.style.setProperty('visibility','hidden','important'); el.style.setProperty('pointer-events','none','important'); } });
