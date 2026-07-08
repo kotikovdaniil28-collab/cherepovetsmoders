@@ -1,0 +1,399 @@
+/* ============================================================
+   CH89 Enhancement Layer — v1
+   Injected on top of the legacy stylesheet. Pure visual polish:
+   animations, transitions, micro-interactions. No layout changes.
+   ============================================================ */
+
+/* ---------- Motion tokens ---------- */
+:root {
+  --ch-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ch-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ch-dur-fast: 160ms;
+  --ch-dur: 280ms;
+  --ch-dur-slow: 480ms;
+  --ch-accent: var(--theme-accent, var(--color-primary, #6f7bf7));
+}
+
+/* ---------- Smooth scrolling + custom scrollbar ---------- */
+html {
+  scroll-behavior: smooth;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background var(--ch-dur-fast) ease;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: content-box;
+}
+
+/* ---------- Text selection ---------- */
+::selection {
+  background: color-mix(in srgb, var(--ch-accent) 45%, transparent);
+  color: #fff;
+}
+
+/* ---------- Accessible focus ring ---------- */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ch-accent) !important;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Buttons: lift, press, sheen ---------- */
+.btn,
+.mode-btn,
+button {
+  transition:
+    transform var(--ch-dur-fast) var(--ch-ease),
+    box-shadow var(--ch-dur) var(--ch-ease),
+    background-color var(--ch-dur-fast) ease,
+    border-color var(--ch-dur-fast) ease,
+    filter var(--ch-dur-fast) ease;
+  will-change: transform;
+}
+.btn:hover,
+.mode-btn:hover {
+  transform: translateY(-2px);
+}
+.btn:active,
+.mode-btn:active,
+button:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 80ms;
+}
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover {
+  box-shadow:
+    0 6px 20px -6px color-mix(in srgb, var(--ch-accent) 65%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  filter: brightness(1.08);
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 60%
+  );
+  transform: translateX(-120%);
+  transition: transform 600ms var(--ch-ease);
+  pointer-events: none;
+}
+.btn-primary:hover::after {
+  transform: translateX(120%);
+}
+.btn-secondary:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  border-color: color-mix(in srgb, var(--ch-accent) 45%, transparent);
+}
+
+/* ---------- Mode tabs: animated active state ---------- */
+.mode-btn {
+  position: relative;
+}
+.mode-btn::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ch-accent);
+  transform: translateX(-50%);
+  transition: width var(--ch-dur) var(--ch-ease);
+  pointer-events: none;
+}
+.mode-btn:hover::before {
+  width: 40%;
+}
+.mode-btn.active::before {
+  width: 65%;
+  box-shadow: 0 0 10px var(--ch-accent);
+}
+.mode-btn.active {
+  animation: ch-tab-pop var(--ch-dur) var(--ch-ease-bounce);
+}
+@keyframes ch-tab-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---------- Inputs: focus glow ---------- */
+.support-input,
+.admin-field,
+.g19-input,
+.ch89-auth-input,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  transition:
+    border-color var(--ch-dur-fast) ease,
+    box-shadow var(--ch-dur) var(--ch-ease),
+    background-color var(--ch-dur-fast) ease;
+}
+.support-input:focus,
+.admin-field:focus,
+.g19-input:focus,
+.ch89-auth-input:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ch-accent) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ch-accent) 22%, transparent),
+    0 0 18px -6px color-mix(in srgb, var(--ch-accent) 55%, transparent);
+}
+.ch89-auth-input-wrap:focus-within .ch89-auth-input-icon {
+  color: var(--ch-accent);
+  transition: color var(--ch-dur-fast) ease;
+}
+
+/* ---------- Cards: hover lift + glow border ---------- */
+.panel,
+.game-card,
+.message-card,
+.gov-v4-card,
+.gov-v3-access-card,
+.g19-card,
+.t73-v26-card,
+.t73-v30-card,
+.t73-v94-review-card,
+.t73-v27-old-report-card,
+.ch89-stable-review-card,
+.rule-item,
+.stat {
+  transition:
+    transform var(--ch-dur) var(--ch-ease),
+    box-shadow var(--ch-dur) var(--ch-ease),
+    border-color var(--ch-dur) ease;
+}
+.game-card:hover,
+.message-card:hover,
+.gov-v4-card:hover,
+.gov-v3-access-card:hover,
+.g19-card:hover,
+.t73-v26-card:hover,
+.t73-v30-card:hover,
+.t73-v94-review-card:hover,
+.t73-v27-old-report-card:hover,
+.ch89-stable-review-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 34px -14px rgba(0, 0, 0, 0.55),
+    0 0 0 1px color-mix(in srgb, var(--ch-accent) 22%, transparent);
+}
+.rule-item:hover,
+.stat:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ch-accent) 35%, transparent);
+}
+
+/* ---------- Avatars & badges ---------- */
+.avatar {
+  transition: transform var(--ch-dur) var(--ch-ease-bounce), box-shadow var(--ch-dur) ease;
+}
+.avatar:hover {
+  transform: scale(1.07);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ch-accent) 40%, transparent);
+}
+.badge,
+.gov-v4-pill,
+.t73-report-pill {
+  transition: transform var(--ch-dur-fast) var(--ch-ease), box-shadow var(--ch-dur-fast) ease;
+}
+.badge:hover,
+.gov-v4-pill:hover,
+.t73-report-pill:hover {
+  transform: scale(1.05);
+}
+
+/* ---------- Live channel dot pulse ---------- */
+.channel-dot {
+  animation: ch-dot-pulse 2.4s ease-in-out infinite;
+}
+@keyframes ch-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+/* ---------- Mode panel entrance (added by enhance.js) ---------- */
+.ch-enh-mode-in {
+  animation: ch-mode-in var(--ch-dur-slow) var(--ch-ease) both;
+}
+@keyframes ch-mode-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Scroll reveal (added by enhance.js) ---------- */
+.ch-enh-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.ch-enh-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--ch-dur-slow) var(--ch-ease),
+    transform var(--ch-dur-slow) var(--ch-ease);
+  transition-delay: var(--ch-stagger, 0ms);
+}
+
+/* ---------- Ripple (added by enhance.js) ---------- */
+.ch-enh-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(0);
+  animation: ch-ripple 550ms var(--ch-ease) forwards;
+  pointer-events: none;
+}
+@keyframes ch-ripple {
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ---------- Auth screen entrance ---------- */
+.ch89-auth-card {
+  animation: ch-auth-in 640ms var(--ch-ease) both;
+}
+@keyframes ch-auth-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.ch89-auth-feature {
+  transition: transform var(--ch-dur) var(--ch-ease), border-color var(--ch-dur) ease;
+}
+.ch89-auth-feature:hover {
+  transform: translateX(4px);
+  border-color: color-mix(in srgb, var(--ch-accent) 40%, transparent);
+}
+.ch89-auth-primary {
+  position: relative;
+  overflow: hidden;
+}
+.ch89-auth-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px -8px color-mix(in srgb, var(--ch-accent) 70%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  filter: brightness(1.08);
+}
+.ch89-auth-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 60%
+  );
+  transform: translateX(-120%);
+  transition: transform 600ms var(--ch-ease);
+  pointer-events: none;
+}
+.ch89-auth-primary:hover::after {
+  transform: translateX(120%);
+}
+.ch89-social-btn:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ch-accent) 45%, transparent);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+.ch89-auth-tab {
+  transition: background-color var(--ch-dur-fast) ease, color var(--ch-dur-fast) ease;
+}
+.ch89-auth-tab.active {
+  animation: ch-tab-pop var(--ch-dur) var(--ch-ease-bounce);
+}
+
+/* ---------- Section heads: accent underline sweep ---------- */
+.section-head {
+  position: relative;
+}
+
+/* ---------- Links ---------- */
+.gov-link {
+  transition: color var(--ch-dur-fast) ease, text-decoration-color var(--ch-dur-fast) ease;
+}
+.gov-link:hover {
+  color: var(--ch-accent);
+}
+
+/* ---------- Theme change: smooth color crossfade ---------- */
+html[data-site-theme] body {
+  transition: background-color 600ms ease, color 400ms ease;
+}
+
+/* ---------- Reduced motion: turn everything off ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ch-enh-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

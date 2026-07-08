@@ -35,6 +35,33 @@ async function readLegacyHtml(fileName: "index.html" | "404.html") {
   return readFile(path.join(process.cwd(), "legacy", fileName), "utf8");
 }
 
+let enhanceCache: { css: string; js: string } | null = null;
+
+async function readEnhancements() {
+  if (enhanceCache && process.env.NODE_ENV === "production") return enhanceCache;
+  const dir = path.join(process.cwd(), "legacy");
+  const [css, js] = await Promise.all([
+    readFile(path.join(dir, "enhance.css"), "utf8").catch(() => ""),
+    readFile(path.join(dir, "enhance.js"), "utf8").catch(() => "")
+  ]);
+  enhanceCache = { css, js };
+  return enhanceCache;
+}
+
+async function injectEnhancements(html: string) {
+  const { css, js } = await readEnhancements();
+  let out = html;
+  if (css) {
+    const styleTag = `<style id="ch89-enhance-css">${css}</style>`;
+    out = out.includes("</head>") ? out.replace("</head>", `${styleTag}</head>`) : out + styleTag;
+  }
+  if (js) {
+    const scriptTag = `<script id="ch89-enhance-js">${js}</script>`;
+    out = out.includes("</body>") ? out.replace("</body>", `${scriptTag}</body>`) : out + scriptTag;
+  }
+  return out;
+}
+
 function normalizePath(request: NextRequest) {
   const url = new URL(request.url);
   const rawPath = url.pathname.replace(/\/+$/, "") || "/";
@@ -80,9 +107,10 @@ export async function GET(request: NextRequest) {
   try {
     const route = LEGACY_ROUTES[normalizePath(request)] || LEGACY_ROUTES["/"];
     const html = await readLegacyHtml("index.html");
-    return new NextResponse(injectRoute(html, route), { status: 200, headers: HTML_HEADERS });
+    const enhanced = await injectEnhancements(injectRoute(html, route));
+    return new NextResponse(enhanced, { status: 200, headers: HTML_HEADERS });
   } catch {
     const html = await readLegacyHtml("404.html");
-    return new NextResponse(html, { status: 500, headers: HTML_HEADERS });
+    return new NextResponse(await injectEnhancements(html), { status: 500, headers: HTML_HEADERS });
   }
 }
