@@ -2189,7 +2189,7 @@ html[data-site-theme] .badge.xp {
 <div class="avatar" id="profileAvatar" style="width: 85px; height: 85px; font-size: 2.2rem;">?</div>
 <div>
 <h3 id="profileName" style="font-size: 1.9rem; margin-bottom: 0.3rem; color: #fff;">Загрузка...</h3>
-<div style="color: var(--color-text-muted); font-size: 0.95rem;">Должность: Сотрудник проекта</div>
+<div id="profilePosition" style="color: var(--color-text-muted); font-size: 0.95rem;">Должность: Сотрудник проекта</div>
 </div>
 </div>
 <div class="stats-grid" style="margin-top: 1.2rem;">
@@ -4905,6 +4905,7 @@ html[data-site-theme] .badge.xp {
             const btnColor = document.getElementById('equipColorBtn'); if (btnColor) btnColor.textContent = activeCosmetics.color ? "Снять" : "Надеть";
             if(currentUser && currentNickname) { document.getElementById('profileAvatar').textContent = initials(currentNickname); }
             const pXp = document.getElementById('profileXp'); if (pXp) pXp.textContent = availableXp(); const pRealXp = document.getElementById('profileRealXp'); if (pRealXp) pRealXp.textContent = getRealBalance();
+            try { if (window.CH89_PROFILE_DASHBOARD) window.CH89_PROFILE_DASHBOARD.refresh(); } catch(e) {}
         }
 
         function updateModStats() {
@@ -19983,7 +19984,7 @@ html[data-site-theme] .badge.xp {
     if(!sec){ host.insertAdjacentHTML('beforeend','<section class="panel game-card fade-in" id="mode-reports_table" style="display:none;"></section>'); sec = $('mode-reports_table'); }
     sec.className = 'panel game-card fade-in t73-v94-table';
     sec.style.display = 'grid';
-    sec.innerHTML = '<div class="section-head"><h2>Таблица отчётов модерации</h2><p>Автоматическая таблица из «Общее»: отчёты модераторов, выбранный тип сдачи, вердикт руководства и неактивы по датам.</p></div><div class="rt-controls t73-v94-rt-controls"><button class="btn btn-secondary" id="rtPrevWeekBtn" type="button">⬅️ Прошлая неделя</button><h3 id="rtCurrentWeekLabel">Текущая неделя</h3><button class="btn btn-secondary" id="rtNextWeekBtn" type="button">Следующая ➡️</button></div><div class="t73-v94-rt-note">Статусы обновляются сразу: модератор отправляет отчёт, руководство нажимает вердикт, и этот день меняется в таблице. Одобренные неактивы автоматически закрывают диапазон дат статусом <b>НЕАКТИВ</b>.</div><div id="reportsTableWrapper"><div class="message-text" style="text-align:center;padding:2rem;">⏳ Загрузка таблицы...</div></div>';
+    sec.innerHTML = '<div class="section-head"><h2>Таблица отчётов модерации</h2><p>Автоматическая таблица из «Общее»: отчёты модераторов, выбранный тип сдачи, вердикт руководства и неактивы по датам.</p></div><div class="rt-controls t73-v94-rt-controls"><button class="btn btn-secondary" id="rtPrevWeekBtn" type="button">⬅️ Прошлая неделя</button><h3 id="rtCurrentWeekLabel">Текущая неделя</h3><button class="btn btn-secondary" id="rtNextWeekBtn" type="button">Следующая ➡️</button></div><div style="display:flex;gap:.65rem;justify-content:center;flex-wrap:wrap;margin:.15rem 0 .85rem;"><button class="btn btn-primary" id="ch89LegacyExportPng" type="button">🖼 Скачать PNG для INFO</button><button class="btn btn-secondary" id="ch89LegacyExportCsv" type="button">📄 Скачать CSV</button></div><div class="t73-v94-rt-note">Статусы обновляются сразу: модератор отправляет отчёт, руководство нажимает вердикт, и этот день меняется в таблице. Одобренные неактивы автоматически закрывают диапазон дат статусом <b>НЕАКТИВ</b>.</div><div id="reportsTableWrapper"><div class="message-text" style="text-align:center;padding:2rem;">⏳ Загрузка таблицы...</div></div>';
     bindWeekButtons();
     return $('reportsTableWrapper');
   }
@@ -28644,5 +28645,185 @@ html[data-site-theme="creator"] .info-banner     { border-left-color: rgba(255,1
 })();
 </script>
 <!-- === /CH89 V182 === -->
+<!-- === CH89 V183: career dashboard inside legacy General -> Profile === -->
+<style id="ch89-v183-profile-dashboard-style">
+  #ch89ProfileDashboard { margin-top:1.25rem; display:grid; gap:1rem; }
+  .ch89-pd-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+  .ch89-pd-head h3 { margin:0 0 .3rem; color:#fff; font-size:1.15rem; }
+  .ch89-pd-muted { color:var(--color-text-muted); font-size:.88rem; line-height:1.45; }
+  .ch89-pd-rank { display:flex; align-items:center; gap:.7rem; padding:.72rem .9rem; border:1px solid rgba(255,214,122,.3); border-radius:15px; background:linear-gradient(135deg,rgba(255,191,71,.13),rgba(108,140,255,.08)); }
+  .ch89-pd-rank-badge { display:grid; place-items:center; min-width:42px; height:42px; padding:0 .55rem; border-radius:12px; color:#18130a; background:linear-gradient(135deg,#ffbf47,#ffe09a); font-weight:950; box-shadow:0 8px 24px rgba(255,191,71,.2); }
+  .ch89-pd-rank small,.ch89-pd-rank strong { display:block; }
+  .ch89-pd-rank small { color:var(--color-text-muted); font-size:.72rem; margin-bottom:.16rem; }
+  .ch89-pd-rank strong { color:#fff; font-size:.94rem; }
+  .ch89-pd-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+  .ch89-pd-card { min-width:0; padding:1rem; border:1px solid rgba(191,198,255,.18); border-radius:16px; background:rgba(13,16,32,.66); box-shadow:inset 0 1px rgba(255,255,255,.035); }
+  .ch89-pd-card span { display:block; color:var(--color-text-muted); font-size:.78rem; font-weight:750; }
+  .ch89-pd-card strong { display:block; margin:.3rem 0 .12rem; color:#fff; font-size:1.65rem; line-height:1; }
+  .ch89-pd-card small { color:var(--color-text-muted); font-size:.72rem; }
+  .ch89-pd-card.accent { border-color:rgba(255,191,71,.3); background:linear-gradient(145deg,rgba(255,191,71,.1),rgba(13,16,32,.68)); }
+  .ch89-pd-layout { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr); gap:.8rem; }
+  .ch89-pd-paths { display:grid; gap:.75rem; margin-top:.85rem; }
+  .ch89-pd-path { padding:.85rem; border:1px solid rgba(191,198,255,.14); border-radius:14px; background:rgba(0,0,0,.2); }
+  .ch89-pd-path-head { display:flex; justify-content:space-between; gap:.75rem; color:#fff; font-size:.85rem; font-weight:850; }
+  .ch89-pd-track { height:8px; overflow:hidden; margin:.65rem 0 .5rem; border-radius:99px; background:rgba(255,255,255,.08); }
+  .ch89-pd-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,#ffbf47,#ffd979); box-shadow:0 0 15px rgba(255,191,71,.32); }
+  .ch89-pd-path.early .ch89-pd-fill { background:linear-gradient(90deg,#6c8cff,#a26cff); box-shadow:0 0 15px rgba(108,140,255,.3); }
+  .ch89-pd-reports { display:grid; gap:.55rem; margin-top:.85rem; }
+  .ch89-pd-report { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.7rem; align-items:center; padding:.72rem .78rem; border:1px solid rgba(191,198,255,.13); border-radius:13px; background:rgba(0,0,0,.2); }
+  .ch89-pd-report b { display:block; color:#fff; font-size:.83rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ch89-pd-report small { color:var(--color-text-muted); font-size:.72rem; }
+  .ch89-pd-status { display:inline-flex; align-items:center; justify-content:center; max-width:130px; padding:.28rem .5rem; border-radius:99px; border:1px solid rgba(191,198,255,.18); color:#dfe5ff; background:rgba(108,140,255,.1); font-size:.69rem; font-weight:900; text-align:center; }
+  .ch89-pd-status.ok { color:#b9f6d2; border-color:rgba(61,214,140,.3); background:rgba(61,214,140,.08); }
+  .ch89-pd-status.bad { color:#ffd1dc; border-color:rgba(255,107,136,.3); background:rgba(255,107,136,.08); }
+  .ch89-pd-empty { padding:1rem; border:1px dashed rgba(191,198,255,.18); border-radius:14px; color:var(--color-text-muted); text-align:center; font-size:.85rem; }
+  @media(max-width:860px){ .ch89-pd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ch89-pd-layout{grid-template-columns:1fr} }
+  @media(max-width:520px){ .ch89-pd-grid{grid-template-columns:1fr 1fr}.ch89-pd-card{padding:.82rem}.ch89-pd-card strong{font-size:1.35rem}.ch89-pd-report{grid-template-columns:1fr}.ch89-pd-status{max-width:none;width:max-content} }
+</style>
+<script id="ch89-v183-profile-dashboard-script">
+(function(){
+  'use strict';
+  if (window.__CH89_V183_PROFILE_DASHBOARD__) return;
+  window.__CH89_V183_PROFILE_DASHBOARD__ = true;
+  var busy = false, lastLoad = 0;
+  var APPROVED = new Set(['Норма','Перенорма','Натяг','Герой дня']);
+  var HIGH = new Set(['Перенорма','Герой дня']);
+  var RANKS = {
+    junior_moderator:{short:'ММ',title:'Младший модератор',next:'Модератор'},
+    moderator:{short:'М',title:'Модератор',next:'Старший модератор'},
+    senior_moderator:{short:'СМ',title:'Старший модератор'},
+    km:{short:'КМ',title:'Куратор модерации'},
+    zgm:{short:'ЗГМ',title:'Заместитель главного модератора'},
+    gm:{short:'ГМ',title:'Главный модератор'}
+  };
+  function $(id){ return document.getElementById(id); }
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];}); }
+  function client(){ try { if (typeof supa !== 'undefined' && supa && supa.auth) return supa; } catch(e){} return window.supa || window.__T73_SUPA || window.t73Supa || window.supabaseClient || null; }
+  async function user(c){
+    try { if (typeof currentUser !== 'undefined' && currentUser) return currentUser; } catch(e){}
+    if (window.currentUser) return window.currentUser;
+    try { var r=await c.auth.getUser(); if(r.data&&r.data.user) return r.data.user; } catch(e){}
+    try { var s=await c.auth.getSession(); return s.data&&s.data.session&&s.data.session.user; } catch(e){}
+    return null;
+  }
+  function ensure(){
+    var mode=$('mode-profile'); if(!mode) return null;
+    var host=$('ch89ProfileDashboard'); if(host) return host;
+    host=document.createElement('section'); host.id='ch89ProfileDashboard';
+    var stats=mode.querySelector('.stats-grid');
+    if(stats) stats.insertAdjacentElement('afterend',host); else mode.appendChild(host);
+    return host;
+  }
+  function json(v){ try{return JSON.parse(v);}catch(e){return{};} }
+  function payload(row){
+    var raw=String(row&&row.date||''), m=raw.match(/JSON:\s*(\{[\s\S]*\})\s*$/i);
+    return json(m?m[1]:(raw.trim().charAt(0)==='{'?raw:'{}'));
+  }
+  function day(row){
+    var p=payload(row), raw=String(p.date||p.day||'');
+    if(!raw){ var m=String(row&&row.date||'').match(/Дата:\s*([\d-]+)/i); raw=m?m[1]:''; }
+    var t=new Date(/^20\d\d-\d\d-\d\d$/.test(raw)?raw+'T12:00:00+03:00':raw).getTime();
+    return Number.isFinite(t)?t:0;
+  }
+  function reportTitle(row){ var p=payload(row); return String(p.work||p.comment||'Ежедневный отчёт').trim(); }
+  function ruDate(ms){ return ms?new Date(ms).toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}):'Без даты'; }
+  function percent(v){ return Math.max(0,Math.min(100,Math.round(v||0))); }
+  function progress(days,reports,targetDays,targetReports){ return percent(Math.min(days/targetDays,reports/targetReports)*100); }
+  function skeleton(host){ host.innerHTML='<div class="ch89-pd-card"><div class="ch89-pd-muted">Загружаю активность и карьерный прогресс...</div></div>'; }
+  function pathHtml(title,cls,pct,left,right,foot){ return '<div class="ch89-pd-path '+cls+'"><div class="ch89-pd-path-head"><span>'+esc(title)+'</span><b>'+pct+'%</b></div><div class="ch89-pd-track"><div class="ch89-pd-fill" style="width:'+pct+'%"></div></div><div class="ch89-pd-muted">'+esc(left)+' · '+esc(right)+'</div>'+(foot?'<div class="ch89-pd-muted" style="margin-top:.3rem">'+esc(foot)+'</div>':'')+'</div>'; }
+  function tableRows(){
+    return Array.from(document.querySelectorAll('#reportsTableWrapper .t73-v94-card')).map(function(card){
+      return {
+        name:String((card.querySelector('.t73-v94-name')||{}).textContent||'Модератор').trim(),
+        xp:String((card.querySelector('.t73-v94-xp')||{}).textContent||'').trim(),
+        days:Array.from(card.querySelectorAll('.t73-v94-day')).map(function(cell){
+          var d=String((cell.querySelector('.t73-v94-date')||{}).textContent||'').trim();
+          var select=cell.querySelector('select'), status=select?select.options[select.selectedIndex].text:String((cell.querySelector('.t73-v94-status')||{}).textContent||'-').trim();
+          return {date:d,status:status||'-'};
+        })
+      };
+    });
+  }
+  function saveBlob(blob,name){ var a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000); }
+  function exportCsv(){
+    var rows=tableRows(); if(!rows.length){alert('Сначала дождитесь загрузки таблицы.');return;}
+    var dates=rows[0].days.map(function(d){return d.date;});
+    function q(v){return '"'+String(v||'').replace(/"/g,'""')+'"';}
+    var out=[[q('Модератор'),q('Real XP')].concat(dates.map(q)).join(';')].concat(rows.map(function(r){return [q(r.name),q(r.xp)].concat(r.days.map(function(d){return q(d.status);})).join(';');})).join('\r\n');
+    saveBlob(new Blob(['\ufeff'+out],{type:'text/csv;charset=utf-8'}),'cherepovets_activity.csv');
+  }
+  function colorForStatus(s){s=String(s||'').toLowerCase();if(s.indexOf('герой')!==-1)return'#facc15';if(s.indexOf('перенорм')!==-1)return'#60a5fa';if(s.indexOf('норма')!==-1)return'#4ade80';if(s.indexOf('натяг')!==-1)return'#c084fc';if(s.indexOf('неактив')!==-1)return'#94a3b8';if(s.indexOf('отказ')!==-1||s.indexOf('нет отчет')!==-1||s.indexOf('нет отч')!==-1)return'#fb7185';if(s.indexOf('провер')!==-1)return'#f59e0b';return'#64748b';}
+  async function exportPng(){
+    var rows=tableRows(); if(!rows.length){alert('Сначала дождитесь загрузки таблицы.');return;}
+    var width=1800,rowH=92,top=205,height=top+rows.length*rowH+90,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;var x=canvas.getContext('2d');
+    var bg=x.createLinearGradient(0,0,width,height);bg.addColorStop(0,'#12100a');bg.addColorStop(.52,'#0d1020');bg.addColorStop(1,'#090b14');x.fillStyle=bg;x.fillRect(0,0,width,height);
+    x.fillStyle='#ffbf47';x.font='900 24px Arial';x.fillText('CHEREPOVETS · STAFF',55,55);x.fillStyle='#fff';x.font='900 48px Arial';x.fillText('Активность модерации',55,112);x.fillStyle='#aab1c8';x.font='600 20px Arial';x.fillText('Готовая сводка из раздела «Общее → Таблица отчётов»',55,150);
+    var dates=rows[0].days.map(function(d){return d.date;}),nameW=430,cellW=(width-nameW-110)/Math.max(1,dates.length);x.fillStyle='#d8def3';x.font='800 17px Arial';dates.forEach(function(d,i){x.fillText(d,nameW+55+i*cellW,190);});
+    rows.forEach(function(r,ri){var y=top+ri*rowH;x.fillStyle=ri%2?'rgba(255,255,255,.035)':'rgba(255,191,71,.045)';x.fillRect(35,y-22,width-70,rowH-6);x.fillStyle='#fff';x.font='800 20px Arial';x.fillText(r.name.slice(0,30),55,y+12);x.fillStyle='#aab1c8';x.font='600 14px Arial';x.fillText(r.xp,55,y+39);r.days.forEach(function(d,i){var cx=nameW+40+i*cellW,cy=y-2;x.fillStyle=colorForStatus(d.status);x.beginPath();x.roundRect(cx,cy-20,cellW-14,43,12);x.globalAlpha=.18;x.fill();x.globalAlpha=1;x.strokeStyle=colorForStatus(d.status);x.lineWidth=1;x.stroke();x.fillStyle='#f6f7ff';x.font='700 14px Arial';var label=String(d.status||'-');if(label.length>14)label=label.slice(0,13)+'…';x.fillText(label,cx+10,cy+6);});});
+    x.fillStyle='#858da9';x.font='600 15px Arial';x.fillText('Сформировано '+new Date().toLocaleString('ru-RU'),55,height-38);
+    var blob=await new Promise(function(resolve){canvas.toBlob(resolve,'image/png',1);});if(blob)saveBlob(blob,'cherepovets_activity.png');
+  }
+  async function refresh(force){
+    var host=ensure(), c=client(); if(!host||!c||busy) return;
+    if(!force && Date.now()-lastLoad<1800) return;
+    busy=true; skeleton(host);
+    try{
+      var u=await user(c); if(!u||!u.id){host.innerHTML='<div class="ch89-pd-empty">Войдите в аккаунт, чтобы увидеть дашборд.</div>';return;}
+      var email=String(u.email||'');
+      var results=await Promise.all([
+        c.from('reports').select('id,email,link,date,status,xp').eq('email',email).order('id',{ascending:false}).limit(1500),
+        c.from('reports').select('email,status,link,date').in('email',['USER_ROLE','ADMIN_ROLE']).eq('link',u.id).limit(200),
+        c.from('moderator_careers').select('*').eq('site_user_id',u.id).maybeSingle(),
+        c.from('vk_links').select('vk_user_id').eq('site_user_id',u.id).maybeSingle()
+      ]);
+      var reports=results[0].data||[], roles=(results[1].data||[]).map(function(r){return String(r.status||'');});
+      var career=results[2].data||null, linked=!!(results[3].data&&results[3].data.vk_user_id);
+      var effective=career&&career.rank?career.rank:(roles.indexOf('moderator')!==-1?'junior_moderator':(roles.indexOf('leadership')!==-1?'km':''));
+      var rank=RANKS[effective]||{short:'—',title:'Сотрудник проекта'};
+      var startedRaw=career&&(career.rank_started_at||career.appointed_at), started=startedRaw?new Date(startedRaw).getTime():0;
+      var days=started?Math.max(0,Math.floor((Date.now()-started)/86400000)):0;
+      var approved=reports.filter(function(r){return APPROVED.has(String(r.status||''));});
+      var rankReports=approved.filter(function(r){return !started||day(r)>=started;});
+      var high=rankReports.filter(function(r){return HIGH.has(String(r.status||''));});
+      var weekStart=Date.now()-7*86400000;
+      var week=approved.filter(function(r){return day(r)>=weekStart;});
+      var pending=reports.filter(function(r){return ['На проверке','У Руководства'].indexOf(String(r.status||''))!==-1;}).length;
+      var rejected=reports.filter(function(r){return String(r.status||'')==='Не засчитано';}).length;
+      var position=$('profilePosition'); if(position) position.textContent='Должность: '+rank.title;
+      var regular=null, early=null;
+      if(effective==='junior_moderator'){
+        regular={pct:progress(days,rankReports.length,7,7),days:'Дни: '+days+' / 7',reports:'Отчёты: '+rankReports.length+' / 7'};
+        early={pct:progress(days,high.length,5,5),days:'Дни: '+days+' / 5',reports:'Перенорма / Герой: '+high.length+' / 5'};
+      } else if(effective==='moderator'){
+        regular={pct:progress(days,rankReports.length,14,14),days:'Дни: '+days+' / 14',reports:'Отчёты: '+rankReports.length+' / 14'};
+        early={pct:progress(days,high.length,10,10),days:'Дни: '+days+' / 10',reports:'Перенорма / Герой: '+high.length+' / 10'};
+      }
+      var paths=rank.next&&regular&&early
+        ? pathHtml('Обычное повышение','',regular.pct,regular.days,regular.reports,'Нужны одновременно срок и отчёты.')+pathHtml('Досрочное повышение','early',early.pct,early.days,early.reports,'Нужны одновременно срок и сильные отчёты.')
+        : '<div class="ch89-pd-empty">'+(effective? 'Для должности «'+esc(rank.title)+'» следующая автоматическая ступень не предусмотрена.':'Статус модератора пока не найден. После синхронизации состава должность появится здесь автоматически.')+'</div>';
+      var recent=reports.filter(function(r){return !String(r.email||'').startsWith('USER_');}).slice(0,5);
+      var recentHtml=recent.length?recent.map(function(r){
+        var st=String(r.status||'На проверке'), cls=APPROVED.has(st)?'ok':(st==='Не засчитано'?'bad':'');
+        return '<div class="ch89-pd-report"><div><b title="'+esc(reportTitle(r))+'">'+esc(reportTitle(r))+'</b><small>'+esc(ruDate(day(r)))+' · '+Number(r.xp||0)+' XP</small></div><span class="ch89-pd-status '+cls+'">'+esc(st)+'</span></div>';
+      }).join(''):'<div class="ch89-pd-empty">Отчётов пока нет.</div>';
+      host.innerHTML='<div class="ch89-pd-head"><div><h3>Активность и карьерный путь</h3><div class="ch89-pd-muted">Данные обновляются из отчётов и таблицы состава.</div></div><div class="ch89-pd-rank"><div class="ch89-pd-rank-badge">'+esc(rank.short)+'</div><div><small>Текущая должность</small><strong>'+esc(rank.title)+'</strong></div></div></div>'+
+        '<div class="ch89-pd-grid"><div class="ch89-pd-card accent"><span>Одобрено всего</span><strong>'+approved.length+'</strong><small>отчётов руководством</small></div><div class="ch89-pd-card"><span>За последние 7 дней</span><strong>'+week.length+'</strong><small>одобренных отчётов</small></div><div class="ch89-pd-card"><span>На должности</span><strong>'+days+'</strong><small>дней · сильных: '+high.length+'</small></div><div class="ch89-pd-card"><span>На проверке</span><strong>'+pending+'</strong><small>отказов: '+rejected+' · VK '+(linked?'привязан':'не привязан')+'</small></div></div>'+
+        '<div class="ch89-pd-layout"><div class="ch89-pd-card"><div class="ch89-pd-head"><div><h3>'+(rank.next?'До повышения: '+esc(rank.next):'Карьерный статус')+'</h3><div class="ch89-pd-muted">Учитываются отчёты после назначения на текущую должность.</div></div></div><div class="ch89-pd-paths">'+paths+'</div></div><div class="ch89-pd-card"><div class="ch89-pd-head"><div><h3>Последние отчёты</h3><div class="ch89-pd-muted">Свежие решения руководства.</div></div></div><div class="ch89-pd-reports">'+recentHtml+'</div></div></div>';
+      lastLoad=Date.now();
+    }catch(e){ host.innerHTML='<div class="ch89-pd-empty" style="color:#ffd1dc">Не удалось загрузить дашборд: '+esc(e&&e.message?e.message:e)+'</div>'; }
+    finally{ busy=false; }
+  }
+  function boot(){ ensure(); setTimeout(function(){refresh(true);},180); }
+  document.addEventListener('click',function(e){
+    var t=e.target&&e.target.closest&&e.target.closest('button,[data-mode]'); if(!t)return;
+    if(t.id==='ch89LegacyExportCsv'){e.preventDefault();exportCsv();return;}
+    if(t.id==='ch89LegacyExportPng'){e.preventDefault();exportPng();return;}
+    if(t.matches('[data-mode="profile"]')) setTimeout(function(){refresh(true);},120);
+  },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  window.CH89_PROFILE_DASHBOARD={refresh:function(){refresh(false);},reload:function(){refresh(true);}};
+})();
+</script>
+<!-- === /CH89 V183 === -->
 </body>
 </html>

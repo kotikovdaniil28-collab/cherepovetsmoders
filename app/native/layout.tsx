@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import NativeShell from "./native-shell";
-import "./native-shell.css";
+import { redirect } from "next/navigation";
 
 export default function NativeLayout({
-  children
+  children: _children
 }: Readonly<{
   children: ReactNode;
 }>) {
-  return <NativeShell>{children}</NativeShell>;
+  redirect("/profile");
 }

@@ -32,17 +32,6 @@ const LEGACY_ROUTES: Record<string, LegacyRoute> = {
   "/general": { mode: "about", buttonId: "aboutTabBtn", title: "Общее" }
 };
 
-const PRIMARY_NATIVE_ROUTES: Record<string, string> = {
-  "/": "/native/profile",
-  "/profile": "/native/profile",
-  "/reports": "/native/reports",
-  "/inactives": "/native/inactives",
-  "/reports-table": "/native/table",
-  "/leaderboard": "/native/leaderboard",
-  "/dashboard": "/native",
-  "/activity": "/native/table"
-};
-
 async function readLegacyHtml(fileName: "index.html" | "404.html") {
   return readFile(path.join(process.cwd(), "legacy", fileName), "utf8");
 }
@@ -82,22 +71,15 @@ function routeBootScript(route: LegacyRoute) {
 
 function injectRoute(html: string, route: LegacyRoute) {
   const script = routeBootScript(route);
-  const nativeLauncher = `<style id="ch89-native-launcher-style">
-  #ch89NativeLauncher{position:fixed;right:18px;bottom:18px;z-index:10020;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 18px;border:1px solid rgba(174,188,255,.48);border-radius:18px;background:linear-gradient(135deg,#6d8cff,#a855f7);color:#fff;text-decoration:none;font:900 14px/1 system-ui;letter-spacing:.01em;box-shadow:0 18px 52px rgba(52,69,148,.46);transition:transform .18s ease,box-shadow .18s ease}#ch89NativeLauncher:hover{transform:translateY(-3px);box-shadow:0 24px 68px rgba(74,89,190,.58)}#ch89NativeLauncher span{display:grid;width:30px;height:30px;place-items:center;border-radius:10px;background:rgba(255,255,255,.16);font-size:18px}@media(max-width:620px){#ch89NativeLauncher{right:10px;bottom:10px;left:10px;justify-content:center;border-radius:15px}}
-  </style><a id="ch89NativeLauncher" href="/native"><span>✦</span>Открыть новый дашборд</a>`;
   const title = `CHEREPOVETS | ${route.title}`;
   const withTitle = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
-  if (withTitle.includes("</body>")) return withTitle.replace("</body>", `${nativeLauncher}${script}</body>`);
-  return withTitle + nativeLauncher + script;
+  if (withTitle.includes("</body>")) return withTitle.replace("</body>", `${script}</body>`);
+  return withTitle + script;
 }
 
 export async function GET(request: NextRequest) {
   try {
     const normalizedPath = normalizePath(request);
-    const target = PRIMARY_NATIVE_ROUTES[normalizedPath];
-    if (target && request.nextUrl.searchParams.get("legacy") !== "1") {
-      return NextResponse.redirect(new URL(target, request.url));
-    }
     const route = LEGACY_ROUTES[normalizedPath] || LEGACY_ROUTES["/"];
     const html = await readLegacyHtml("index.html");
     return new NextResponse(injectRoute(html, route), { status: 200, headers: HTML_HEADERS });
