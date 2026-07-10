@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const navItems = [
-  { href: "/native/profile", label: "Профиль" },
+  { href: "/native/profile", label: "Дашборд" },
   { href: "/native/reports", label: "Отчёт" },
   { href: "/native/inactives", label: "Неактив" },
   { href: "/native/table", label: "Активность" },

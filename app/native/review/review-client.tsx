@@ -373,7 +373,7 @@ export default function ReviewClient() {
         <section className="review-card review-state">
           <h2>Нужно войти</h2>
           <p>Сессия Supabase не найдена. Войди через старую авторизацию.</p>
-          <a className="review-button" href="/">Перейти ко входу</a>
+          <a className="review-button" href="/login?legacy=1">Перейти ко входу</a>
         </section>
       ) : !canReview ? (
         <section className="review-card review-state">

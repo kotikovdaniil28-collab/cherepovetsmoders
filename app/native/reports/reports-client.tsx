@@ -437,7 +437,7 @@ export default function ReportsClient() {
         <section className="reports-card reports-state">
           <h2>Нужно войти</h2>
           <p>Сессия Supabase не найдена. Войди через старую авторизацию, затем вернись сюда.</p>
-          <a className="reports-button" href="/">Перейти ко входу</a>
+          <a className="reports-button" href="/login?legacy=1">Перейти ко входу</a>
         </section>
       ) : (
         <section className="reports-layout">

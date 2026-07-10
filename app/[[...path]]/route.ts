@@ -19,6 +19,7 @@ type LegacyRoute = {
 
 const LEGACY_ROUTES: Record<string, LegacyRoute> = {
   "/": { mode: "profile", buttonId: "profileTabBtn", title: "Профиль" },
+  "/login": { mode: "profile", buttonId: "profileTabBtn", title: "Вход" },
   "/profile": { mode: "profile", buttonId: "profileTabBtn", title: "Профиль" },
   "/reports": { mode: "report", buttonId: "reportTabBtn", title: "Сдача отчёта" },
   "/inactives": { mode: "inactives", buttonId: "inactiveTabBtn", title: "Неактивы" },
@@ -32,6 +33,7 @@ const LEGACY_ROUTES: Record<string, LegacyRoute> = {
 };
 
 const PRIMARY_NATIVE_ROUTES: Record<string, string> = {
+  "/": "/native/profile",
   "/profile": "/native/profile",
   "/reports": "/native/reports",
   "/inactives": "/native/inactives",

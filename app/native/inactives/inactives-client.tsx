@@ -312,7 +312,7 @@ export default function InactivesClient() {
         <section className="inactive-card inactive-state">
           <h2>Нужно войти</h2>
           <p>Сессия Supabase не найдена. Войди через старую авторизацию, затем вернись сюда.</p>
-          <a className="inactive-button" href="/">Перейти ко входу</a>
+          <a className="inactive-button" href="/login?legacy=1">Перейти ко входу</a>
         </section>
       ) : (
         <section className="inactive-layout">

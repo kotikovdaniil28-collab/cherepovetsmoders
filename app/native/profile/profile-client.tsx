@@ -225,7 +225,7 @@ export default function ProfileClient() {
         <section className="native-card native-state">
           <h2>Нужно войти</h2>
           <p>Войди через основную страницу, чтобы открыть рабочий профиль.</p>
-          <a className="native-button" href="/">Перейти ко входу</a>
+          <a className="native-button" href="/login?legacy=1">Перейти ко входу</a>
         </section>
       ) : (
         <>

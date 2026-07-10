@@ -772,7 +772,7 @@ export default function TableClient() {
         <section className="table-card table-state">
           <h2>Нужно войти</h2>
           <p>Сессия Supabase не найдена.</p>
-          <a className="table-button" href="/">Перейти ко входу</a>
+          <a className="table-button" href="/login?legacy=1">Перейти ко входу</a>
         </section>
       ) : (
         <section className="table-list">
