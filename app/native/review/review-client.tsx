@@ -39,7 +39,7 @@ type QueryBuilder<T> = {
 type SupabaseLike = {
   auth: {
     getUser(): Promise<{ data?: { user?: SupabaseUser | null } }>;
-    getSession(): Promise<{ data?: { session?: { user?: SupabaseUser | null } | null } }>;
+    getSession(): Promise<{ data?: { session?: { user?: SupabaseUser | null; access_token?: string } | null } }>;
   };
   from<T = Record<string, unknown>>(table: string): QueryBuilder<T>;
 };
@@ -119,6 +119,14 @@ const actions = [
   { status: "Натяг", xp: 7 },
   { status: "Герой дня", xp: 60 },
   { status: "Не засчитано", xp: 0 }
+];
+const rejectReasons = [
+  { code: "none", title: "Просто отказать" },
+  { code: "no_proof", title: "Нет доказательств" },
+  { code: "not_enough_work", title: "Недостаточно работы" },
+  { code: "wrong_date", title: "Неверная дата" },
+  { code: "duplicate", title: "Дубликат" },
+  { code: "rules", title: "Не по требованиям" }
 ];
 
 function loadScript(src: string) {
@@ -234,6 +242,8 @@ export default function ReviewClient() {
   const [canReview, setCanReview] = useState(false);
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [onlyPending, setOnlyPending] = useState(true);
+  const [accessToken, setAccessToken] = useState("");
+  const [decision, setDecision] = useState<{ row: ReportRow; mode: "approve" | "reject" } | null>(null);
 
   async function load() {
     try {
@@ -243,12 +253,10 @@ export default function ReviewClient() {
       const supabase = client || await createClient();
       setClient(supabase);
 
+      const sessionResult = await supabase.auth.getSession();
       const userResult = await supabase.auth.getUser();
-      let authUser = userResult.data?.user || null;
-      if (!authUser) {
-        const sessionResult = await supabase.auth.getSession();
-        authUser = sessionResult.data?.session?.user || null;
-      }
+      let authUser = userResult.data?.user || sessionResult.data?.session?.user || null;
+      setAccessToken(String(sessionResult.data?.session?.access_token || ""));
 
       setUser(authUser);
 
@@ -299,14 +307,24 @@ export default function ReviewClient() {
     return onlyPending ? rows.filter((row) => pending(row.status)) : rows;
   }, [onlyPending, rows]);
 
-  async function review(row: ReportRow, status: string, xp: number) {
-    if (!client || !canReview) return;
+  async function review(row: ReportRow, status: string, reasonCode = "") {
+    if (!client || !canReview || !accessToken) return;
     try {
       setBusyId(row.id);
       setError("");
-      const result = await client.from<ReportRow>("reports").update({ status, xp }).eq("id", row.id);
-      if (result.error) throw new Error(result.error.message || "Ошибка обновления");
+      const response = await fetch("/api/reports/review", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ reportId: row.id, status, reasonCode })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || "Ошибка обновления");
+      const xp = Number(result.xp || 0);
       setRows((items) => items.map((item) => item.id === row.id ? { ...item, status, xp } : item));
+      setDecision(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Неизвестная ошибка");
     } finally {
@@ -330,10 +348,10 @@ export default function ReviewClient() {
 
       <section className="review-hero">
         <p>Next-раздел руководства</p>
-        <h1>Проверка отчётов</h1>
-        <span>
-          Native-панель меняет те же поля reports.status и reports.xp, которые использует старая
-          таблица отчётов.
+          <h1>Центр решений</h1>
+          <span>
+          Один экран для доказательств, итогового типа и вердикта. После решения бот сам напишет
+          модератору в VK и обновит карточку в группе отчётности.
         </span>
       </section>
 
@@ -407,17 +425,22 @@ export default function ReviewClient() {
                   )}
 
                   <div className="review-actions">
-                    {actions.map((action) => (
-                      <button
-                        className={action.status === "Не засчитано" ? "review-button danger" : "review-button"}
-                        disabled={busyId === row.id}
-                        key={action.status}
-                        onClick={() => review(row, action.status, action.xp)}
-                        type="button"
-                      >
-                        {action.status} · {action.xp}
-                      </button>
-                    ))}
+                    <button
+                      className="review-button"
+                      disabled={busyId === row.id}
+                      onClick={() => setDecision({ row, mode: "approve" })}
+                      type="button"
+                    >
+                      Одобрить и выбрать тип
+                    </button>
+                    <button
+                      className="review-button danger"
+                      disabled={busyId === row.id}
+                      onClick={() => setDecision({ row, mode: "reject" })}
+                      type="button"
+                    >
+                      Отказать
+                    </button>
                   </div>
                 </article>
               );
@@ -427,6 +450,52 @@ export default function ReviewClient() {
           )}
         </section>
       )}
+
+      {decision ? (
+        <div className="review-modal-backdrop" role="presentation" onMouseDown={() => setDecision(null)}>
+          <section
+            aria-labelledby="reviewDecisionTitle"
+            aria-modal="true"
+            className="review-modal review-card"
+            onMouseDown={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <button aria-label="Закрыть" className="review-modal-close" onClick={() => setDecision(null)} type="button">×</button>
+            <p className="review-kicker">{decision.mode === "approve" ? "Итоговый тип" : "Причина отказа"}</p>
+            <h2 id="reviewDecisionTitle">{parseReport(decision.row).nick}</h2>
+            <p className="review-modal-copy">
+              {decision.mode === "approve"
+                ? "Выберите фактический результат. Заявленный модератором тип можно изменить."
+                : "Выберите готовую причину — бот аккуратно передаст её модератору в личные сообщения."}
+            </p>
+            <div className="review-decision-grid">
+              {decision.mode === "approve" ? actions.filter((item) => item.status !== "Не засчитано").map((action) => (
+                <button
+                  className="review-decision-option"
+                  disabled={busyId === decision.row.id}
+                  key={action.status}
+                  onClick={() => review(decision.row, action.status)}
+                  type="button"
+                >
+                  <strong>{action.status}</strong>
+                  <span>{action.xp} XP</span>
+                </button>
+              )) : rejectReasons.map((reason) => (
+                <button
+                  className="review-decision-option danger"
+                  disabled={busyId === decision.row.id}
+                  key={reason.code}
+                  onClick={() => review(decision.row, "Не засчитано", reason.code)}
+                  type="button"
+                >
+                  <strong>{reason.title}</strong>
+                  <span>0 XP</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }

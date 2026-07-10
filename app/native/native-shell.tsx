@@ -28,7 +28,7 @@ export default function NativeShell({
     <div className="ch-native-shell">
       <header className="ch-shell-header">
         <a className="ch-shell-brand" href="/native">
-          <span>CV</span>
+          <span>CH</span>
           <b>CHEREPOVETS</b>
         </a>
         <nav className="ch-shell-nav" aria-label="Native navigation">
@@ -43,7 +43,7 @@ export default function NativeShell({
             </a>
           ))}
         </nav>
-        <a className="ch-shell-legacy" href="/general">Legacy</a>
+        <a className="ch-shell-legacy" href="/general">Старый сайт</a>
       </header>
       {children}
     </div>

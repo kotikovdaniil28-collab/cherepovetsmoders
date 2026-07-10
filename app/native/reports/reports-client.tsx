@@ -358,7 +358,7 @@ export default function ReportsClient() {
       }
 
       const payload = {
-        version: "native-v46",
+        version: "native-v54-career",
         nick: finalNick,
         work: finalWork,
         date,
@@ -372,9 +372,10 @@ export default function ReportsClient() {
       };
 
       const combined = `Ник: ${finalNick} | Дата: ${date} | Работа: ${finalWork} | Тип сдачи: ${quality} | Доказательства: ${proofs.length} | JSON: ${JSON.stringify(payload)}`;
+      const reportId = makeId();
       const result = await client.from<ReportRow>("reports").insert([
         {
-          id: makeId(),
+          id: reportId,
           email: user.email || "",
           link: proofs[0]?.url || "",
           date: combined,
@@ -386,7 +387,7 @@ export default function ReportsClient() {
       if (result.error) throw new Error(result.error.message || "Ошибка отправки");
 
       const row = {
-        id: makeId(),
+        id: reportId,
         email: user.email || "",
         link: proofs[0]?.url || "",
         date: combined,

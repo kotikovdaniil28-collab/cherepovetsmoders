@@ -46,7 +46,7 @@ type QueryBuilder<T> = {
 type SupabaseLike = {
   auth: {
     getUser(): Promise<{ data?: { user?: SupabaseUser | null } }>;
-    getSession(): Promise<{ data?: { session?: { user?: SupabaseUser | null } | null } }>;
+    getSession(): Promise<{ data?: { session?: { user?: SupabaseUser | null; access_token?: string } | null } }>;
   };
   from<T = Record<string, unknown>>(table: string): QueryBuilder<T>;
 };
@@ -311,6 +311,7 @@ export default function TableClient() {
   const [canEdit, setCanEdit] = useState(false);
   const [rows, setRows] = useState<MemberRow[]>([]);
   const [busyId, setBusyId] = useState("");
+  const [accessToken, setAccessToken] = useState("");
 
   const days = useMemo(() => weekDays(weekOffset), [weekOffset]);
 
@@ -322,12 +323,10 @@ export default function TableClient() {
       const supabase = client || await createClient();
       setClient(supabase);
 
+      const sessionResult = await supabase.auth.getSession();
       const userResult = await supabase.auth.getUser();
-      let authUser = userResult.data?.user || null;
-      if (!authUser) {
-        const sessionResult = await supabase.auth.getSession();
-        authUser = sessionResult.data?.session?.user || null;
-      }
+      let authUser = userResult.data?.user || sessionResult.data?.session?.user || null;
+      setAccessToken(String(sessionResult.data?.session?.access_token || ""));
       setUser(authUser);
 
       if (!authUser) {
@@ -469,8 +468,19 @@ export default function TableClient() {
       setBusyId(cell.report.id);
       setError("");
       const xp = statusXp[status] ?? 0;
-      const result = await client.from<ReportRow>("reports").update({ status, xp }).eq("id", cell.report.id);
-      if (result.error) throw new Error(result.error.message || "Ошибка обновления");
+      if (["Норма", "Перенорма", "Натяг", "Герой дня", "Не засчитано"].includes(status)) {
+        if (!accessToken) throw new Error("Сессия истекла. Войди заново.");
+        const response = await fetch("/api/reports/review", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ reportId: cell.report.id, status, reasonCode: status === "Не засчитано" ? "rules" : "" })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || "Ошибка обновления");
+      } else {
+        const result = await client.from<ReportRow>("reports").update({ status, xp }).eq("id", cell.report.id);
+        if (result.error) throw new Error(result.error.message || "Ошибка обновления");
+      }
       setRows((items) => items.map((member) => ({
         ...member,
         cells: member.cells.map((item) => item.report?.id === cell.report?.id ? { ...item, status, report: { ...item.report, status, xp } } : item)

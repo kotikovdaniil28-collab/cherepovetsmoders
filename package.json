@@ -1,6 +1,6 @@
 {
   "name": "cherepovets-moderation-next",
-  "version": "53.0.0",
+  "version": "54.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
     "next": "15.5.19",
     "react": "19.2.7",
     "react-dom": "19.2.7"
