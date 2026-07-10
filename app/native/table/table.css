@@ -162,6 +162,81 @@ a {
   color: var(--muted);
 }
 
+.table-dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.table-summary {
+  min-height: 154px;
+  padding: 20px;
+}
+
+.table-summary > span,
+.table-export-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.table-summary > strong {
+  display: block;
+  margin: 14px 0 10px;
+  font-size: 46px;
+  line-height: .9;
+  letter-spacing: -.04em;
+}
+
+.table-summary small,
+.table-export-card small {
+  color: var(--muted);
+}
+
+.table-summary.primary {
+  border-color: rgba(125, 211, 252, .32);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(125, 211, 252, .17), transparent 54%),
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.025)),
+    var(--surface);
+}
+
+.table-summary.danger {
+  border-color: rgba(255, 107, 136, .27);
+}
+
+.table-summary.danger > strong {
+  color: #ff9aac;
+}
+
+.table-export-card {
+  grid-column: span 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 0 50%, rgba(109, 140, 255, .16), transparent 42%),
+    radial-gradient(circle at 100% 50%, rgba(168, 85, 247, .14), transparent 42%),
+    var(--surface);
+}
+
+.table-export-card strong {
+  display: block;
+  margin: 6px 0 4px;
+  font-size: 24px;
+}
+
+.table-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .table-list {
   display: grid;
   gap: 16px;
@@ -314,5 +389,34 @@ a {
 
   .table-day {
     flex: 0 0 70vw;
+  }
+
+  .table-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-export-card {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 560px) {
+  .table-summary {
+    min-height: 132px;
+    padding: 16px;
+  }
+
+  .table-summary > strong {
+    font-size: 38px;
+  }
+
+  .table-export-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .table-export-actions,
+  .table-export-actions .table-button {
+    width: 100%;
   }
 }

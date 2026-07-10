@@ -302,6 +302,58 @@ function toNumber(value: unknown) {
   return Number.isFinite(number) ? number : 0;
 }
 
+const acceptedStatuses = new Set(["Норма", "Перенорма", "Натяг", "Герой дня"]);
+const highStatuses = new Set(["Перенорма", "Герой дня"]);
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function csvCell(value: unknown) {
+  const text = String(value ?? "").replace(/"/g, '""');
+  return `"${text}"`;
+}
+
+function memberPeriodStats(member: MemberRow) {
+  const accepted = member.cells.filter((cell) => acceptedStatuses.has(cell.status)).length;
+  const high = member.cells.filter((cell) => highStatuses.has(cell.status)).length;
+  const missed = member.cells.filter((cell) => ["Нет отчета", "Не засчитано"].includes(cell.status)).length;
+  const inactive = member.cells.filter((cell) => cell.status === "Неактив").length;
+  return { accepted, high, missed, inactive };
+}
+
+function statusColor(status: string) {
+  if (status === "Норма") return "#4ade80";
+  if (status === "Перенорма") return "#60a5fa";
+  if (status === "Натяг") return "#c084fc";
+  if (status === "Герой дня") return "#facc15";
+  if (status === "Неактив") return "#94a3b8";
+  if (status === "На проверке") return "#f59e0b";
+  if (status === "Нет отчета" || status === "Не засчитано") return "#fb7185";
+  return "#64748b";
+}
+
+function shortStatus(status: string) {
+  return ({
+    "На проверке": "Проверка",
+    "Перенорма": "Перенорма",
+    "Герой дня": "Герой дня",
+    "Не засчитано": "Отказ",
+    "Нет отчета": "Нет отчёта",
+    "Неактив": "Неактив",
+    "Натяг": "Натяг",
+    "Норма": "Норма",
+    none: "—"
+  } as Record<string, string>)[status] || status || "—";
+}
+
 export default function TableClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -312,8 +364,19 @@ export default function TableClient() {
   const [rows, setRows] = useState<MemberRow[]>([]);
   const [busyId, setBusyId] = useState("");
   const [accessToken, setAccessToken] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const days = useMemo(() => weekDays(weekOffset), [weekOffset]);
+  const periodStats = useMemo(() => {
+    const cells = rows.flatMap((member) => member.cells);
+    const eligible = cells.filter((cell) => new Date(`${cell.day}T23:59:59`).getTime() <= Date.now());
+    const accepted = eligible.filter((cell) => acceptedStatuses.has(cell.status)).length;
+    const high = eligible.filter((cell) => highStatuses.has(cell.status)).length;
+    const missed = eligible.filter((cell) => ["Нет отчета", "Не засчитано"].includes(cell.status)).length;
+    const inactive = eligible.filter((cell) => cell.status === "Неактив").length;
+    const completion = eligible.length ? Math.round(((accepted + inactive) / eligible.length) * 100) : 0;
+    return { accepted, high, missed, inactive, completion };
+  }, [rows]);
 
   async function load() {
     try {
@@ -492,6 +555,164 @@ export default function TableClient() {
     }
   }
 
+  function downloadCsv() {
+    if (!rows.length) return;
+    const lines = [
+      ["CHEREPOVETS · Активность модерации"],
+      [`Период: ${days[0]} — ${days[6]}`],
+      [],
+      ["№", "Модератор", ...days.map((day) => ruDate(day)), "Одобрено", "Перенорма/Герой", "Пропуски/отказы", "Неактив", "Real XP"]
+    ];
+    rows.forEach((member, index) => {
+      const stats = memberPeriodStats(member);
+      lines.push([
+        String(index + 1),
+        String(member.nickname || member.email || "Без ника"),
+        ...member.cells.map((cell) => shortStatus(cell.status)),
+        String(stats.accepted),
+        String(stats.high),
+        String(stats.missed),
+        String(stats.inactive),
+        String(member.realXp)
+      ]);
+    });
+    const csv = `\uFEFFsep=;\r\n${lines.map((line) => line.map(csvCell).join(";")).join("\r\n")}`;
+    downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `cherepovets_activity_${days[0]}_${days[6]}.csv`);
+  }
+
+  async function downloadPng() {
+    if (!rows.length || exporting) return;
+    setExporting(true);
+    try {
+      const width = 1900;
+      const headerHeight = 250;
+      const rowHeight = 74;
+      const footerHeight = 96;
+      const height = headerHeight + rows.length * rowHeight + footerHeight;
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Браузер не поддерживает экспорт изображения");
+
+      const background = ctx.createLinearGradient(0, 0, width, height);
+      background.addColorStop(0, "#070a16");
+      background.addColorStop(0.55, "#0c1328");
+      background.addColorStop(1, "#100b1f");
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+      const glow = ctx.createRadialGradient(1600, 20, 0, 1600, 20, 640);
+      glow.addColorStop(0, "rgba(139,92,246,.28)");
+      glow.addColorStop(1, "rgba(139,92,246,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, width, 720);
+
+      ctx.fillStyle = "#aebcff";
+      ctx.font = "900 22px Arial, sans-serif";
+      ctx.fillText("CHEREPOVETS · STAFF", 60, 54);
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "900 52px Arial, sans-serif";
+      ctx.fillText("Активность модерации", 60, 116);
+      ctx.fillStyle = "#aab3d3";
+      ctx.font = "600 24px Arial, sans-serif";
+      ctx.fillText(`${days[0]} — ${days[6]}  ·  ${rows.length} модераторов`, 60, 158);
+
+      const chips = [
+        [`Выполнение ${periodStats.completion}%`, "#7dd3fc"],
+        [`Одобрено ${periodStats.accepted}`, "#4ade80"],
+        [`Перенорма / Герой ${periodStats.high}`, "#c084fc"],
+        [`Пропуски / отказы ${periodStats.missed}`, "#fb7185"]
+      ];
+      let chipX = 60;
+      ctx.font = "800 18px Arial, sans-serif";
+      chips.forEach(([label, color]) => {
+        const chipWidth = ctx.measureText(label).width + 34;
+        ctx.fillStyle = `${color}22`;
+        ctx.beginPath();
+        ctx.roundRect(chipX, 184, chipWidth, 42, 18);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.fillText(label, chipX + 17, 212);
+        chipX += chipWidth + 12;
+      });
+
+      const xIndex = 60;
+      const xName = 120;
+      const nameWidth = 350;
+      const dayWidth = 166;
+      const xDays = xName + nameWidth;
+      const xResult = xDays + dayWidth * 7;
+      ctx.fillStyle = "rgba(255,255,255,.075)";
+      ctx.fillRect(48, headerHeight - 8, width - 96, 54);
+      ctx.fillStyle = "#aeb8d7";
+      ctx.font = "800 17px Arial, sans-serif";
+      ctx.fillText("#", xIndex, headerHeight + 25);
+      ctx.fillText("МОДЕРАТОР", xName, headerHeight + 25);
+      days.forEach((day, index) => ctx.fillText(ruDate(day), xDays + index * dayWidth + 18, headerHeight + 25));
+      ctx.fillText("ИТОГ", xResult + 14, headerHeight + 25);
+
+      rows.forEach((member, rowIndex) => {
+        const y = headerHeight + 46 + rowIndex * rowHeight;
+        if (rowIndex % 2 === 0) {
+          ctx.fillStyle = "rgba(255,255,255,.028)";
+          ctx.fillRect(48, y, width - 96, rowHeight);
+        }
+        ctx.fillStyle = "#75809f";
+        ctx.font = "800 18px Arial, sans-serif";
+        ctx.fillText(String(rowIndex + 1), xIndex, y + 44);
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "800 21px Arial, sans-serif";
+        const displayName = String(member.nickname || member.email || "Без ника");
+        ctx.fillText(displayName.length > 25 ? `${displayName.slice(0, 24)}…` : displayName, xName, y + 34);
+        ctx.fillStyle = "#8792b2";
+        ctx.font = "600 15px Arial, sans-serif";
+        ctx.fillText(`${member.realXp} Real XP`, xName, y + 56);
+
+        member.cells.forEach((cell, dayIndex) => {
+          const cellX = xDays + dayIndex * dayWidth + 8;
+          const color = statusColor(cell.status);
+          ctx.fillStyle = `${color}20`;
+          ctx.beginPath();
+          ctx.roundRect(cellX, y + 13, dayWidth - 16, 46, 13);
+          ctx.fill();
+          ctx.fillStyle = color;
+          ctx.font = "800 15px Arial, sans-serif";
+          const label = shortStatus(cell.status);
+          ctx.fillText(label.length > 13 ? `${label.slice(0, 12)}…` : label, cellX + 12, y + 42);
+        });
+
+        const stats = memberPeriodStats(member);
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "900 21px Arial, sans-serif";
+        ctx.fillText(`${stats.accepted}/7`, xResult + 14, y + 34);
+        ctx.fillStyle = "#8d98b8";
+        ctx.font = "700 14px Arial, sans-serif";
+        ctx.fillText(`активность`, xResult + 14, y + 55);
+      });
+
+      const footerY = height - footerHeight;
+      ctx.strokeStyle = "rgba(174,188,255,.14)";
+      ctx.beginPath();
+      ctx.moveTo(60, footerY + 10);
+      ctx.lineTo(width - 60, footerY + 10);
+      ctx.stroke();
+      ctx.fillStyle = "#7f8aaa";
+      ctx.font = "600 16px Arial, sans-serif";
+      ctx.fillText("Статусы сформированы из решений руководства и одобренных неактивов", 60, footerY + 54);
+      ctx.textAlign = "right";
+      ctx.fillText(`Сформировано ${new Date().toLocaleString("ru-RU")}`, width - 60, footerY + 54);
+      ctx.textAlign = "left";
+
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png", 1));
+      if (!blob) throw new Error("Не удалось создать изображение");
+      downloadBlob(blob, `cherepovets_activity_${days[0]}_${days[6]}.png`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Ошибка экспорта");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <main className="table-page">
       <nav className="table-topbar">
@@ -507,11 +728,11 @@ export default function TableClient() {
       </nav>
 
       <section className="table-hero">
-        <p>Next-раздел руководства</p>
-        <h1>Таблица отчётов</h1>
+        <p>Активность команды</p>
+        <h1>Отчётность за неделю</h1>
         <span>
-          Недельная native-сетка: модераторы, отчёты, выбранный тип сдачи, вердикт, XP и
-          одобренные неактивы.
+          Смотрите вклад каждого модератора, находите пропуски и выгружайте готовую таблицу
+          для публикации в INFO.
         </span>
       </section>
 
@@ -528,6 +749,22 @@ export default function TableClient() {
         </button>
         <button className="table-button" onClick={load} type="button">Обновить</button>
       </section>
+
+      {!loading && user ? (
+        <section className="table-dashboard">
+          <article className="table-card table-summary primary"><span>Выполнение недели</span><strong>{periodStats.completion}%</strong><small>отчёты и одобренные неактивы</small></article>
+          <article className="table-card table-summary"><span>Одобрено</span><strong>{periodStats.accepted}</strong><small>отчётов за выбранный период</small></article>
+          <article className="table-card table-summary"><span>Перенорма / Герой</span><strong>{periodStats.high}</strong><small>сильных результатов</small></article>
+          <article className="table-card table-summary danger"><span>Пропуски / отказы</span><strong>{periodStats.missed}</strong><small>требуют внимания</small></article>
+          <article className="table-card table-export-card">
+            <div><span>Выгрузка для INFO</span><strong>Готово к публикации</strong><small>Текущая выбранная неделя</small></div>
+            <div className="table-export-actions">
+              <button className="table-button" disabled={!rows.length || exporting} onClick={downloadPng} type="button">{exporting ? "Создаю PNG..." : "Скачать PNG"}</button>
+              <button className="table-button ghost" disabled={!rows.length} onClick={downloadCsv} type="button">Скачать CSV</button>
+            </div>
+          </article>
+        </section>
+      ) : null}
 
       {loading ? (
         <section className="table-card table-state">Загрузка таблицы...</section>

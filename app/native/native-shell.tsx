@@ -7,7 +7,7 @@ const navItems = [
   { href: "/native/profile", label: "Профиль" },
   { href: "/native/reports", label: "Отчёт" },
   { href: "/native/inactives", label: "Неактив" },
-  { href: "/native/table", label: "Таблица" },
+  { href: "/native/table", label: "Активность" },
   { href: "/native/review", label: "Проверка" },
   { href: "/native/leaderboard", label: "Лидерборд" }
 ];

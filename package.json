@@ -1,6 +1,6 @@
 {
   "name": "cherepovets-moderation-next",
-  "version": "54.0.0",
+  "version": "55.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
