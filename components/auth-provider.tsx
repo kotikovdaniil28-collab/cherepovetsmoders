@@ -85,13 +85,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supa = getSupabase();
     let mounted = true;
 
+    console.log("[v0] auth effect: calling getSession");
     supa.auth.getSession().then(async ({ data }) => {
+      console.log("[v0] getSession resolved, user:", data.session?.user?.email);
       if (!mounted) return;
       const u = data.session?.user ?? null;
       setUser(u);
       // Не блокируем загрузку панели — строка создаётся в фоне
       void ensureStatsRow(data.session?.access_token);
+      console.log("[v0] loading roles+xp...");
       await Promise.all([loadRoles(u), loadXp(u)]);
+      console.log("[v0] roles+xp loaded, clearing loading");
       if (mounted) setLoading(false);
     });
 
