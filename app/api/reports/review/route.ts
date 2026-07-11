@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 const statusXp: Record<string, number> = {
-  "Норма": 15,
+  "Норма": 10,
   "Перенорма": 30,
   "Натяг": 7,
   "Герой дня": 60,
