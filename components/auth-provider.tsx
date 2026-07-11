@@ -84,27 +84,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supa = getSupabase();
     let mounted = true;
+    let bootstrapped = false;
 
-    console.log("[v0] auth effect: calling getSession");
-    supa.auth.getSession().then(async ({ data }) => {
-      console.log("[v0] getSession resolved, user:", data.session?.user?.email);
-      if (!mounted) return;
-      const u = data.session?.user ?? null;
-      setUser(u);
-      // Не блокируем загрузку панели — строка создаётся в фоне
-      void ensureStatsRow(data.session?.access_token);
-      console.log("[v0] loading roles+xp...");
-      await Promise.all([loadRoles(u), loadXp(u)]);
-      console.log("[v0] roles+xp loaded, clearing loading");
-      if (mounted) setLoading(false);
-    });
-
-    const { data: sub } = supa.auth.onAuthStateChange((_event, session) => {
+    // Единственный источник истины — onAuthStateChange: он сразу выдаёт
+    // INITIAL_SESSION (в отличие от getSession, который может зависнуть
+    // на navigator.locks). Внутри колбэка нельзя await-ить supabase-запросы
+    // (дедлок supabase-js), поэтому вся загрузка уходит в setTimeout.
+    const { data: sub } = supa.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       const u = session?.user ?? null;
       setUser(u);
       void ensureStatsRow(session?.access_token);
-      // Внутри колбэка нельзя await-ить supabase-запросы (дедлок) — переносим в микрозадачу
+      if (event === "TOKEN_REFRESHED" && bootstrapped) return;
+      bootstrapped = true;
       setTimeout(async () => {
         if (!mounted) return;
         await Promise.all([loadRoles(u), loadXp(u)]);
@@ -112,8 +104,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, 0);
     });
 
+    // Страховка: если INITIAL_SESSION по какой-то причине не пришёл,
+    // не держим пользователя на экране загрузки дольше 4 секунд.
+    const failsafe = setTimeout(() => {
+      if (mounted && !bootstrapped) {
+        setLoading(false);
+      }
+    }, 4000);
+
     return () => {
       mounted = false;
+      clearTimeout(failsafe);
       sub.subscription.unsubscribe();
     };
   }, [loadRoles, loadXp, ensureStatsRow]);
