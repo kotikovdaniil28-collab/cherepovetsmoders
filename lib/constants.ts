@@ -55,7 +55,36 @@ export const KV = {
   GOSS_USER_REPORT: "GOSS_USER_REPORT",
 } as const;
 
-export const KV_EMAILS = new Set<string>(Object.values(KV));
+// Полный список служебных sentinel-email'ов (из legacy) — эти строки НЕ являются отчётами
+export const SERVICE_EMAILS = [
+  ...Object.values(KV),
+  "ACCESS_KEY",
+  "MANUAL_XP",
+  "AP_POINTS",
+  "FSB_POINTS",
+  "FSB_SPEND",
+  "SHOP_FSB",
+  "GOSS_REPORT_CHECK",
+  "GOSS_REPORT_TABLE",
+  "GOSS_REPORT_TABLE_V13",
+  "GOSS_REPORT_TABLE_V15",
+  "GOSS_REPORT_TABLE_V16",
+  "GOSS_REPORT_TABLE_V19",
+  "GOSS_REPORT_MEMBER_V19",
+  "GOSS_REPORT_PROOF_V19",
+  "GOSS_POINTS_V19",
+  "GOSS_ORG_LOG",
+  "GOSS_ORG_LOG_V19",
+  "GOSS_ORG_LOG_V24",
+  "GOSS_SHOP_ITEMS_V13",
+  "GOSS_SHOP_ITEMS_V19",
+  "GOSS_SHOP_ITEMS_V24",
+  "GOSS_SHOP_ITEMS_V26",
+  "GOSS_SHOP_PURCHASE",
+  "FSB_SHOP_LOG",
+];
+
+export const KV_EMAILS = new Set<string>(SERVICE_EMAILS);
 
 // Ранги карьеры модератора
 export const RANKS: Record<string, { short: string; title: string; next?: string }> = {
