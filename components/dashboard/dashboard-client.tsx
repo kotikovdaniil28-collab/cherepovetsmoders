@@ -22,6 +22,7 @@ import { APPROVED_STATUSES, KV_EMAILS, RANKS } from "@/lib/constants";
 import { isAnyAdmin } from "@/lib/roles";
 import { reportDayMs, type ReportRow } from "@/lib/reports";
 import { levelFromXp } from "@/lib/level";
+import { buildPromotionTrack } from "@/lib/promotion";
 import { Reveal, SecHead } from "@/components/ui/reveal";
 
 const HIERARCHY = [
@@ -138,7 +139,9 @@ export function DashboardClient() {
       ? "Руководство"
       : rank?.title || "Модератор";
 
-  /* Пути повышения: активность (отчёты) и качество (герои дня) */
+  const promo = buildPromotionTrack(career?.rank, career?.rank_started_at);
+
+  /* Показатели ускоренного повышения: активность (отчёты) и качество (герои дня) */
   const ACT_TARGET = 60;
   const QUAL_TARGET = 12;
   const actPct = Math.min(100, Math.round((stats.approved / ACT_TARGET) * 100));
@@ -236,9 +239,71 @@ export function DashboardClient() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[1.9fr_1fr]">
         <div className="flex flex-col gap-8">
-          {/* Пути повышения */}
+          {/* Повышение по срокам */}
           <Reveal i={2}>
-            <SecHead title="Пути повышения" hint="активность или качество" />
+            <SecHead title="Повышение" hint="срок на текущей ступени" />
+            {promo.nextLabel ? (
+              <div className="bg-card rounded-2xl border p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <Activity className="text-green-deep size-[18px]" />
+                    <h3 className="font-display text-sm font-semibold">
+                      {promo.rankLabel} <span className="text-muted-foreground">→</span>{" "}
+                      {promo.nextLabel}
+                    </h3>
+                  </div>
+                  {promo.eligibleStandard ? (
+                    <span className="bg-green/15 text-green-deep rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase">
+                      Срок пройден
+                    </span>
+                  ) : promo.eligibleFast ? (
+                    <span className="bg-amber/20 text-amber-deep rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase">
+                      Доступно ускоренное
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-muted-foreground mt-1 mb-4 text-sm">
+                  Стандартно через <b className="text-foreground">{promo.standardDays} дней</b>, за
+                  отличные показатели — через <b className="text-foreground">{promo.fastDays} дней</b>
+                </p>
+                <div className="bg-secondary relative h-[9px] overflow-hidden rounded-full">
+                  <span
+                    className="bar-grow from-green to-green-bright block h-full rounded-full bg-linear-to-r"
+                    style={{ width: `${Math.round(promo.progress * 100)}%` }}
+                  />
+                  {/* Отметка ускоренного срока */}
+                  {promo.fastDays && promo.standardDays && (
+                    <span
+                      aria-hidden
+                      className="bg-amber-deep absolute top-0 h-full w-0.5"
+                      style={{ left: `${Math.round((promo.fastDays / promo.standardDays) * 100)}%` }}
+                    />
+                  )}
+                </div>
+                <div className="text-muted-foreground mt-2.5 flex justify-between text-xs font-semibold">
+                  <span>
+                    {promo.daysOnRank} / {promo.standardDays} дней
+                    {promo.fastDays ? ` (ускоренно от ${promo.fastDays})` : ""}
+                  </span>
+                  <span className="font-display">{Math.round(promo.progress * 100)}%</span>
+                </div>
+                <p className="text-muted-foreground mt-3 text-xs">
+                  Решение о повышении принимает руководство — бот присылает уведомление в STAFF,
+                  когда срок подходит.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-card text-muted-foreground rounded-2xl border p-5 text-sm">
+                {career
+                  ? "Вы на высшей ступени автоматического трека — дальнейшие повышения решает руководство."
+                  : "Карьерная ступень ещё не назначена ботом. Как только вас назначат модератором, здесь появится прогресс до повышения."}
+              </div>
+            )}
+          </Reveal>
+
+          {/* Пути ускоренного повышения */}
+          <Reveal i={3}>
+            <SecHead title="Показатели для ускорения" hint="активность и качество" />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="bg-card rounded-2xl border p-5">
                 <div className="mb-1 flex items-center gap-2.5">
@@ -246,7 +311,7 @@ export function DashboardClient() {
                   <h3 className="font-display text-sm font-semibold">Активность</h3>
                 </div>
                 <p className="text-muted-foreground mb-4 text-sm">
-                  Нужно <b className="text-foreground">{ACT_TARGET} одобренных</b> отчётов
+                  Ориентир — <b className="text-foreground">{ACT_TARGET} одобренных</b> отчётов
                 </p>
                 <div className="bg-secondary h-[9px] overflow-hidden rounded-full">
                   <span
@@ -267,7 +332,7 @@ export function DashboardClient() {
                   <h3 className="font-display text-sm font-semibold">Качество</h3>
                 </div>
                 <p className="text-muted-foreground mb-4 text-sm">
-                  Нужно <b className="text-foreground">{QUAL_TARGET} Героев дня</b>
+                  Ориентир — <b className="text-foreground">{QUAL_TARGET} Героев дня</b>
                 </p>
                 <div className="bg-secondary h-[9px] overflow-hidden rounded-full">
                   <span
