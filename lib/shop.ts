@@ -146,3 +146,27 @@ export async function spendFsbPoints(supa: SupabaseClient, userId: string, amoun
   ]);
   if (error) throw error;
 }
+
+// Лог покупки в admin_logs (формат legacy) — руководство видит и отмечает «Выдано»
+export async function logPurchase(
+  supa: SupabaseClient,
+  params: {
+    userEmail: string;
+    nickname: string;
+    itemName: string;
+    cost: number;
+    kind: "mod" | "ap" | "fsb";
+    autoIssued?: boolean;
+  }
+) {
+  await supa.from("admin_logs").insert([
+    {
+      user_email: params.userEmail,
+      nickname: params.nickname,
+      item_name: params.itemName,
+      cost: params.cost,
+      type: params.kind === "ap" ? "ap_shop" : "mod_shop",
+      status: params.autoIssued ? "Автоматически зачислено" : "Ожидает выдачи",
+    },
+  ]);
+}

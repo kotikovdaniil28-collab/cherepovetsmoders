@@ -18,6 +18,7 @@ import {
   spendApPoints,
   computeFsbPoints,
   spendFsbPoints,
+  logPurchase,
   type ShopItem,
 } from "@/lib/shop";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,6 +75,7 @@ export function ShopClient() {
   const [fsbItems] = useState<ShopItem[]>(DEFAULT_FSB_SHOP);
   const [apPoints, setApPoints] = useState(0);
   const [fsbPoints, setFsbPoints] = useState(0);
+  const [nickname, setNickname] = useState("");
   const [busy, setBusy] = useState(false);
 
   const showAp = roles.kinds.has("ap") || roles.isApAdmin || roles.isCreator;
@@ -82,13 +84,16 @@ export function ShopClient() {
   const load = useCallback(async () => {
     if (!user) return;
     const supa = getSupabase();
-    const [customMod, customAp, overrides, ap, fsb] = await Promise.all([
+    const [customMod, customAp, overrides, ap, fsb, nickRes] = await Promise.all([
       loadCustomShop(supa, KV.SHOP_MOD),
       loadCustomShop(supa, KV.SHOP_AP),
       loadPriceOverrides(supa),
       computeApPoints(supa, user.id),
       computeFsbPoints(supa, user.id),
+      supa.from("user_stats").select("nickname").eq("user_id", user.id).maybeSingle(),
     ]);
+    const fetchedNick = nickRes.data?.nickname;
+    if (fetchedNick) setNickname(String(fetchedNick));
     const withOverrides = (items: ShopItem[]) =>
       items.map((i) => (overrides.has(i.id) ? { ...i, price: overrides.get(i.id)! } : i));
     setModItems(withOverrides([...DEFAULT_MOD_SHOP, ...customMod]));
@@ -117,6 +122,13 @@ export function ShopClient() {
         await spendFsbPoints(supa, user.id, item.price, note);
         setFsbPoints((p) => p - item.price);
       }
+      await logPurchase(supa, {
+        userEmail: user.email || "",
+        nickname: nickname || user.email || "",
+        itemName: item.title,
+        cost: item.price,
+        kind,
+      });
       toast.success(`Куплено: ${item.title}. Сообщите руководству для выдачи.`);
     } catch {
       toast.error("Не удалось совершить покупку");

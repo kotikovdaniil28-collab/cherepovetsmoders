@@ -13,7 +13,8 @@ import {
   User,
   ShoppingBag,
   Gamepad2,
-  Landmark,
+  GraduationCap,
+  BookOpen,
   ShieldCheck,
   Shield,
 } from "lucide-react";
@@ -48,8 +49,11 @@ const NAV: { group: string; items: NavItem[] }[] = [
     ],
   },
   {
-    group: "ГОСС",
-    items: [{ href: "/goss", label: "ГОСС-панель", icon: Landmark }],
+    group: "Обучение",
+    items: [
+      { href: "/training", label: "Обучение", icon: GraduationCap },
+      { href: "/help", label: "Инструкция", icon: BookOpen },
+    ],
   },
   {
     group: "Управление",
