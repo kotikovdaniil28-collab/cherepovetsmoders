@@ -84,17 +84,21 @@ export function ProfileClient() {
 
   const saveNick = async () => {
     if (!user || !nickDraft.trim()) return;
-    const supa = getSupabase();
-    const { error } = await supa
-      .from("user_stats")
-      .upsert({ user_id: user.id, email: user.email, nickname: nickDraft.trim() }, { onConflict: "user_id" });
-    if (error) {
+    try {
+      const { data: sessionData } = await getSupabase().auth.getSession();
+      const token = sessionData.session?.access_token;
+      const res = await fetch("/api/profile/bootstrap", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: nickDraft.trim() }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      setNickname(nickDraft.trim());
+      setEditingNick(false);
+      toast.success("Ник обновлён");
+    } catch {
       toast.error("Не удалось сохранить ник");
-      return;
     }
-    setNickname(nickDraft.trim());
-    setEditingNick(false);
-    toast.success("Ник обновлён");
   };
 
   const stats = useMemo(() => {

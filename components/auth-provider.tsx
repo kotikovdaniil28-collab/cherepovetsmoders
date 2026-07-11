@@ -52,6 +52,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Гарантирует наличие строки user_stats с ником из метаданных.
+  // Запись выполняется на сервере (service role), т.к. RLS запрещает клиентские записи.
+  const ensureStatsRow = useCallback(async (u: User | null) => {
+    if (!u) return;
+    try {
+      const { data: sessionData } = await getSupabase().auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+      await fetch("/api/profile/bootstrap", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const loadXp = useCallback(async (u: User | null) => {
     if (!u) {
       setXp({ reportXp: 0, gameXp: 0, total: 0 });
@@ -72,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       const u = data.session?.user ?? null;
       setUser(u);
+      await ensureStatsRow(u);
       await Promise.all([loadRoles(u), loadXp(u)]);
       if (mounted) setLoading(false);
     });
@@ -80,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       const u = session?.user ?? null;
       setUser(u);
+      await ensureStatsRow(u);
       await Promise.all([loadRoles(u), loadXp(u)]);
       if (mounted) setLoading(false);
     });
@@ -88,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, [loadRoles, loadXp]);
+  }, [loadRoles, loadXp, ensureStatsRow]);
 
   const value = useMemo<AuthState>(
     () => ({

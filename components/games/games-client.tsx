@@ -2,7 +2,20 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Gamepad2 } from "lucide-react";
+import {
+  Gamepad2,
+  Cherry,
+  CircleDollarSign,
+  Vault,
+  Rocket,
+  Package,
+  Dices,
+  Gem,
+  TrendingUp,
+  LifeBuoy,
+  Shuffle,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { getSupabase } from "@/lib/supabase/client";
@@ -20,27 +33,43 @@ import { WheelGame } from "@/components/games/wheel-game";
 import { ShellsGame } from "@/components/games/shells-game";
 import { CasesGame } from "@/components/games/cases-game";
 
-const GAMES = [
-  { id: "roulette", title: "Рулетка Модерации", desc: "100 XP · выиграй до 500 XP", icon: "🎰", cost: 100 },
-  { id: "coin", title: "Орёл или Решка", desc: "500 XP · угадай и удвой", icon: "🪙", cost: 500 },
-  { id: "safes", title: "Три Сейфа", desc: "400 XP · найди куш x3", icon: "🧰", cost: 400 },
-  { id: "crash", title: "Ракетка (Краш)", desc: "100 XP · забери до краша", icon: "🚀", cost: 100 },
-  { id: "cases", title: "Кейсы", desc: "300 XP · открывай кейсы", icon: "📦", cost: 300 },
-  { id: "dice", title: "Кости", desc: "150 XP · брось больше дилера", icon: "🎲", cost: 150 },
-  { id: "mines", title: "Мины (Алмазы)", desc: "300 XP · найди 3 алмаза", icon: "💣", cost: 300 },
-  { id: "hilo", title: "Больше / Меньше", desc: "100 XP · угадай число", icon: "📈", cost: 100 },
-  { id: "wheel", title: "Колесо Иксов", desc: "250 XP · множитель до 5x", icon: "🎡", cost: 250 },
-  { id: "shells", title: "Напёрстки", desc: "200 XP · найди мяч x2.5", icon: "🍵", cost: 200 },
-] as const;
+const GAMES: {
+  id: string;
+  title: string;
+  desc: string;
+  icon: LucideIcon;
+  cost: number;
+}[] = [
+  { id: "roulette", title: "Рулетка Модерации", desc: "100 XP · выиграй до 500 XP", icon: Cherry, cost: 100 },
+  { id: "coin", title: "Орёл или Решка", desc: "500 XP · угадай и удвой", icon: CircleDollarSign, cost: 500 },
+  { id: "safes", title: "Три Сейфа", desc: "400 XP · найди куш x3", icon: Vault, cost: 400 },
+  { id: "crash", title: "Ракетка (Краш)", desc: "100 XP · забери до краша", icon: Rocket, cost: 100 },
+  { id: "cases", title: "Кейсы", desc: "300 XP · открывай кейсы", icon: Package, cost: 300 },
+  { id: "dice", title: "Кости", desc: "150 XP · брось больше дилера", icon: Dices, cost: 150 },
+  { id: "mines", title: "Мины (Алмазы)", desc: "300 XP · найди 3 алмаза", icon: Gem, cost: 300 },
+  { id: "hilo", title: "Больше / Меньше", desc: "100 XP · угадай число", icon: TrendingUp, cost: 100 },
+  { id: "wheel", title: "Колесо Иксов", desc: "250 XP · множитель до 5x", icon: LifeBuoy, cost: 250 },
+  { id: "shells", title: "Напёрстки", desc: "200 XP · найди мяч x2.5", icon: Shuffle, cost: 200 },
+];
 
-type GameId = (typeof GAMES)[number]["id"];
+type GameId =
+  | "roulette"
+  | "coin"
+  | "safes"
+  | "crash"
+  | "cases"
+  | "dice"
+  | "mines"
+  | "hilo"
+  | "wheel"
+  | "shells";
 
 export function GamesClient() {
   const { user, xp, refreshXp } = useAuth();
   const [active, setActive] = useState<GameId | null>(null);
   const [paying, setPaying] = useState(false);
 
-  const openGame = async (id: GameId, cost: number) => {
+  const openGame = async (id: string, cost: number) => {
     if (!user) return;
     if (xp.total < cost) {
       toast.error(`Не хватает XP: нужно ${cost}`);
@@ -51,7 +80,7 @@ export function GamesClient() {
       const game = GAMES.find((g) => g.id === id)!;
       await spendModXp(getSupabase(), user.id, cost, `Игра: ${game.title}`);
       await refreshXp();
-      setActive(id);
+      setActive(id as GameId);
     } catch {
       toast.error("Не удалось оплатить игру");
     } finally {
@@ -101,8 +130,11 @@ export function GamesClient() {
           >
             <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
               <CardContent className="flex h-full flex-col gap-2 p-5">
-                <span aria-hidden className="text-3xl">
-                  {g.icon}
+                <span
+                  aria-hidden
+                  className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg"
+                >
+                  <g.icon className="size-5" />
                 </span>
                 <h3 className="text-sm font-semibold">{g.title}</h3>
                 <p className="text-muted-foreground text-xs">{g.desc}</p>
