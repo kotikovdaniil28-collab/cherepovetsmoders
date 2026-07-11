@@ -9,14 +9,15 @@ import type { ReactNode } from "react";
  */
 export function Reveal({
   i = 0,
+  delay,
   children,
   ...props
-}: { i?: number; children: ReactNode } & HTMLMotionProps<"div">) {
+}: { i?: number; delay?: number; children: ReactNode } & HTMLMotionProps<"div">) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: i * 0.07 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: delay ?? i * 0.07 }}
       {...props}
     >
       {children}
