@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { getSupabase } from "@/lib/supabase/client";
 import { KV_EMAILS, STATUS_XP } from "@/lib/constants";
-import { parseReportPayload, type ReportRow } from "@/lib/reports";
+import { parseReportPayload, reportDayMs, type ReportRow } from "@/lib/reports";
 import { Reveal, SecHead } from "@/components/ui/reveal";
 import {
   Select,
@@ -47,30 +47,34 @@ export function ReviewClient() {
   const load = useCallback(async () => {
     setLoading(true);
     const supa = getSupabase();
-    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const weekAgoMs = Date.now() - 7 * 86400000;
+    // В таблице reports нет created_at — сортируем по id и фильтруем неделю по дате из payload
     const [pendRes, decRes, inactRes] = await Promise.all([
       supa
         .from("reports")
         .select("*")
         .or("status.is.null,status.eq.pending,status.eq.На проверке")
-        .order("created_at", { ascending: true }),
+        .order("id", { ascending: true }),
       supa
         .from("reports")
-        .select("id, status, xp")
+        .select("id, date, status, xp")
         .not("status", "is", null)
         .neq("status", "pending")
         .neq("status", "На проверке")
-        .gte("created_at", weekAgo),
+        .order("id", { ascending: false })
+        .limit(500),
+      // Неактивы живут в reports с email=INACTIVE_REQ (legacy-формат)
       supa
-        .from("inactives")
+        .from("reports")
         .select("id", { count: "exact", head: true })
-        .or("status.is.null,status.eq.pending"),
+        .eq("email", "INACTIVE_REQ")
+        .eq("status", "Ожидает одобрения"),
     ]);
     const pending = ((pendRes.data || []) as ReportRow[]).filter(
       (r) => !KV_EMAILS.has(String(r.email))
     );
     setRows(pending);
-    const dec = (decRes.data || []) as { xp: number }[];
+    const dec = ((decRes.data || []) as ReportRow[]).filter((d) => reportDayMs(d) >= weekAgoMs);
     setDecided({
       approved: dec.filter((d) => (Number(d.xp) || 0) > 0).length,
       rejected: dec.filter((d) => (Number(d.xp) || 0) === 0).length,

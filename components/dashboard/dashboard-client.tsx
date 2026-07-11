@@ -57,7 +57,8 @@ export function DashboardClient() {
     (async () => {
       const email = user.email || "";
       const [repRes, nickRes, careerRes] = await Promise.all([
-        supa.from("reports").select("*").eq("email", email).order("created_at", { ascending: false }),
+        // В таблице reports нет created_at — сортируем по id (в нём таймстамп)
+        supa.from("reports").select("*").eq("email", email).order("id", { ascending: false }),
         supa.from("user_stats").select("nickname").eq("user_id", user.id).maybeSingle(),
         supa.from("moderator_careers").select("rank, rank_started_at").eq("site_user_id", user.id).maybeSingle(),
       ]);

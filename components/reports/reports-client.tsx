@@ -62,7 +62,8 @@ export function ReportsClient() {
     setLoading(true);
     const supa = getSupabase();
     const [repRes, nickRes] = await Promise.all([
-      supa.from("reports").select("*").eq("email", user.email).order("created_at", { ascending: false }),
+      // В таблице reports нет created_at — сортируем по id (в нём таймстамп)
+      supa.from("reports").select("*").eq("email", user.email).order("id", { ascending: false }),
       supa.from("user_stats").select("nickname").eq("email", user.email).maybeSingle(),
     ]);
     const data = ((repRes.data || []) as ReportRow[]).filter((r) => !KV_EMAILS.has(String(r.email)));
