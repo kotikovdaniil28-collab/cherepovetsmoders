@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { getSupabase } from "@/lib/supabase/client";
-import { grantModXp, spendModXp } from "@/lib/shop";
+import { addGameXp } from "@/lib/xp";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RouletteGame } from "@/components/games/roulette-game";

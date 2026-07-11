@@ -39,8 +39,9 @@ type ReportRow = {
 function config() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !anonKey || !serviceKey) throw new Error("Supabase server env is incomplete");
+  // Сервисный ключ опционален: без него работаем от имени пользователя (через RLS)
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  if (!url || !anonKey) throw new Error("Supabase server env is incomplete");
   return { url, anonKey, serviceKey };
 }
 
@@ -114,7 +115,13 @@ export async function POST(request: NextRequest) {
     if (!token) return NextResponse.json({ error: "Нужно войти заново" }, { status: 401 });
     const { url, anonKey, serviceKey } = config();
     const authClient = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    // С сервисным ключом — полный доступ; без него — от имени пользователя (RLS-политики)
+    const admin = serviceKey
+      ? createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+      : createClient(url, anonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+          global: { headers: { Authorization: `Bearer ${token}` } },
+        });
     const userResult = await authClient.auth.getUser(token);
     const user = userResult.data.user;
     if (!user) return NextResponse.json({ error: "Сессия истекла" }, { status: 401 });
@@ -155,9 +162,11 @@ export async function POST(request: NextRequest) {
       vkUserId = String(linkResult.data?.vk_user_id || "");
     }
 
-    let notificationStatus = vkUserId ? "failed" : "not_linked";
+    // Без VK_GROUP_TOKEN оставляем 'waiting' — бот сам доставит вердикт в ЛС
+    const hasVkToken = Boolean(process.env.VK_GROUP_TOKEN);
+    let notificationStatus = vkUserId ? (hasVkToken ? "failed" : "waiting") : "not_linked";
     let notificationError = vkUserId ? "" : "VK не привязан";
-    if (vkUserId) {
+    if (vkUserId && hasVkToken) {
       try {
         await vkApi("messages.send", {
           peer_id: vkUserId,
