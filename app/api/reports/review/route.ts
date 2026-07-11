@@ -36,12 +36,15 @@ type ReportRow = {
   xp?: number | null;
 };
 
+// Те же значения, что в lib/supabase/client.ts — на случай отсутствия env на сервере
+const FALLBACK_URL = "https://hcefoztytkfskmdchqos.supabase.co";
+const FALLBACK_ANON_KEY = "sb_publishable_VRSxi6NDTxJwAcQkni6dwg_xluZs8X6";
+
 function config() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON_KEY;
   // Сервисный ключ опционален: без него работаем от имени пользователя (через RLS)
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!url || !anonKey) throw new Error("Supabase server env is incomplete");
   return { url, anonKey, serviceKey };
 }
 
