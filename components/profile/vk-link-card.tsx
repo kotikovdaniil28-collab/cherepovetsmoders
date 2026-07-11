@@ -124,7 +124,7 @@ export function VkLinkCard() {
                   </Button>
                 </div>
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  Отправь боту в VK команду{" "}
+                  Отправь VK-боту команду{" "}
                   <code className="bg-secondary rounded px-1.5 py-0.5 font-mono">{command}</code>.
                   Код действует 15 минут. После привязки обнови страницу.
                 </p>
