@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadXp = useCallback(async (u: User | null) => {
     if (!u) {
-      setXp({ reportXp: 0, gameXp: 0, total: 0 });
+      setXp({ reportXp: 0, modXp: 0, gameXp: 0, total: 0 });
       return;
     }
     try {
