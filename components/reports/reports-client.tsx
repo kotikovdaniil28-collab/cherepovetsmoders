@@ -54,6 +54,7 @@ export function ReportsClient() {
   const [nick, setNick] = useState("");
   const [day, setDay] = useState(todayIso());
   const [work, setWork] = useState("");
+  const [quality, setQuality] = useState("Норма");
   const [proofLinks, setProofLinks] = useState<string[]>([""]);
 
   const load = useCallback(async () => {
@@ -86,23 +87,45 @@ export function ReportsClient() {
     setSaving(true);
     try {
       const supa = getSupabase();
+      const reportId = makeId("rep_site_");
       const payload = serializeReportPayload({
         nick: nick.trim(),
         day,
         work: work.trim(),
+        quality,
         proofs: cleanProofs,
+        userId: user.id,
+        email: user.email,
       });
+      // Статус "На проверке" — так его видит и VK-бот (/отчёты, вердикты в STAFF)
       const { error } = await supa.from("reports").insert([
         {
-          id: makeId("rep_"),
+          id: reportId,
           email: user.email,
           link: cleanProofs[0] || "",
           date: payload,
-          status: "pending",
+          status: "На проверке",
           xp: 0,
         },
       ]);
       if (error) throw error;
+      // Аудит-строка для бота: карточка вердикта, уведомления в ЛС VK
+      await supa.from("moderator_report_reviews").upsert(
+        {
+          report_id: reportId,
+          site_user_id: user.id,
+          email: user.email,
+          requested_status: quality,
+          final_status: null,
+          xp: 0,
+          verdict: "pending",
+          source: "site",
+          notification_status: "waiting",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "report_id" },
+      );
       toast.success("Отчёт отправлен на проверку");
       setWork("");
       setProofLinks([""]);
@@ -173,6 +196,29 @@ export function ReportsClient() {
                 rows={5}
                 required
               />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Тип сдачи</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {["Норма", "Перенорма", "Натяг", "Герой дня"].map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => setQuality(q)}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors",
+                      quality === q
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "bg-card text-muted-foreground hover:border-primary/40",
+                    )}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                На какой статус претендуешь — финальное решение за руководством
+              </p>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>

@@ -139,7 +139,19 @@ export function DashboardClient() {
       ? "Руководство"
       : rank?.title || "Модератор";
 
-  const promo = buildPromotionTrack(career?.rank, career?.rank_started_at);
+  // Как в боте: считаются одобренные отчёты и Перенормы/Герои за время текущего ранга
+  const promoCounts = useMemo(() => {
+    const started = career?.rank_started_at ? new Date(career.rank_started_at).getTime() : 0;
+    const sinceRank = started > 0 ? rows.filter((r) => reportDayMs(r) >= started) : rows;
+    return {
+      approved: sinceRank.filter(
+        (r) => APPROVED_STATUSES.has(String(r.status)) || (Number(r.xp) || 0) > 0,
+      ).length,
+      high: sinceRank.filter((r) => r.status === "Перенорма" || r.status === "Герой дня").length,
+    };
+  }, [rows, career]);
+
+  const promo = buildPromotionTrack(career?.rank, career?.rank_started_at, promoCounts);
 
   /* Показатели ускоренного повышения: активность (отчёты) и качество (герои дня) */
   const ACT_TARGET = 60;
